@@ -58,14 +58,11 @@ export function App() {
         sub.unsubscribe();
       },
     });
-    const nodesAndNulls: (HTMLAudioElement | null)[] = getPlaybackPaths().map(
-      (config) => config.ref.current
-    );
-    const justAudio: HTMLAudioElement[] = nodesAndNulls.filter(
-      (nodeOrNull): nodeOrNull is HTMLAudioElement => {
+    const justAudio: HTMLAudioElement[] = getPlaybackPaths()
+      .map((config) => config.ref.current)
+      .filter((nodeOrNull): nodeOrNull is HTMLAudioElement => {
         return nodeOrNull !== null;
-      }
-    );
+      });
 
     domAudioReady(justAudio);
     return sub.unsubscribe;

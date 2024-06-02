@@ -11,6 +11,9 @@ export class AudioSourceNode {
   audio: HTMLAudioElement;
   audioContext: AudioContext;
   source: MediaElementAudioSourceNode;
+  playStart: undefined | number;
+  pauseStart: undefined | number;
+
   constructor(audio: HTMLAudioElement, audioContext: AudioContext) {
     this.audio = audio;
     this.audioContext = audioContext;
@@ -20,13 +23,23 @@ export class AudioSourceNode {
       console.log("onloadedmetadata", e);
     };
   }
+
   play() {
     this.audioContext.resume().then(() => {
       this.source.mediaElement.play();
+      this.playStart = performance.now();
     });
   }
+
   pause() {
     console.dir("source:", this);
     this.audioContext.suspend();
+    this.pauseStart = performance.now();
+  }
+
+  getDelta() {
+    return this.pauseStart && this.playStart
+      ? this.pauseStart - this.playStart
+      : 0;
   }
 }
