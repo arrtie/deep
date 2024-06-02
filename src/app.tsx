@@ -1,103 +1,93 @@
-import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import "./app.css";
-import { AudioSourceNode } from "./lib/soundOptons/addAudio";
-import { initSubject, setupStream } from "./lib/soundOptons/observables";
-// export const paths = ["public/assets/rain.mp4"];
-export const paths = [
-  "assets/rain.mp4",
-  // "public/assets/whitenoise.mp4",
-  // "public/assets/roar.mp3",
-];
+import Ardio from "./lib/components/Ardio";
+import {
+  Composer,
+  PlaybackPartial,
+  addPlaybackPath,
+  getPlaybackPaths,
+  makeConfig,
+} from "./lib/orchestrate";
+import {
+  consentToPlayback,
+  domAudioReady,
+  setupStream,
+} from "./lib/soundOptons/observables";
+
+const constantRain: PlaybackPartial<string> = {
+  src: "assets/rain.mp4",
+  loop: true,
+};
+
+const intervalRoar: PlaybackPartial<string> = {
+  src: "assets/roar.mp3",
+  interval: 1000 * 2 * 5,
+};
+
+[constantRain, intervalRoar].forEach(
+  (configPartial: PlaybackPartial<string>) => {
+    addPlaybackPath(makeConfig(configPartial));
+  }
+);
 
 export function App() {
-  const [constrollers, setControllers] = useState<AudioSourceNode>();
-  const [loaded, setLoaded] = useState(false);
-
+  const [controller, setController] = useState<Composer>();
   const [playState, setPlayState] = useState("loading");
 
-  // useEffect(() => {
-  //   function init() {
-  //     console.log("INITED!");
-  //     initSubject.next(paths);
-  //     window.removeEventListener("click", init);
-  //   }
-  //   window.addEventListener("click", init);
-
-  //   return () => {
-  //     window.removeEventListener("click", init);
-  //   };
-  // }, []);
+  const localController = useMemo(() => {
+    if (controller == null) {
+      return {
+        play() {
+          console.log("fake play");
+        },
+        pause() {
+          console.log("fake pause");
+        },
+      };
+    }
+    return controller;
+  }, [controller]);
+  const lC = localController;
 
   useEffect(() => {
     const sub = setupStream.subscribe({
-      next: (node: AudioSourceNode) => {
-        console.log("NEXTED!", node);
-        setControllers(node);
+      next: (controller: Composer) => {
+        console.log("NEXTED!", controller);
+        setController(controller);
         setPlayState("paused");
         sub.unsubscribe();
       },
     });
-    if (audioRef.current != null) {
-      initSubject.next(audioRef.current);
-    }
+    const nodesAndNulls: (HTMLAudioElement | null)[] = getPlaybackPaths().map(
+      (config) => config.ref.current
+    );
+    const justAudio: HTMLAudioElement[] = nodesAndNulls.filter(
+      (nodeOrNull): nodeOrNull is HTMLAudioElement => {
+        return nodeOrNull !== null;
+      }
+    );
+
+    domAudioReady(justAudio);
     return sub.unsubscribe;
   }, []);
 
-  console.log("constrollers: ", constrollers);
-
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  // useEffect(() => {
-  //   if (audioRef.current != null) {
-  //     const newElement = document.createElement("audio");
-  //     newElement.src = "assets/rain.mp4";
-  //     newElement.controls = true;
-  //     audioRef.current.appendChild(newElement);
-  //     setLoaded(true);
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   if (audioRef.current != null) {
-  //     const nodes = audioContainer?.querySelectorAll("audio");
-  //     if (nodes == null) {
-  //       return;
-  //     }
-  //     Array.from(nodes).map((audio) => {
-  //       initSubject.next(audio);
-  //     });
-  //   }
-  // }, []);
-
   const play = () => {
-    // audioContainer?.querySelectorAll("audio").forEach((controller) => {
-    //   controller.play();
-    // });
-    constrollers?.play();
+    lC.play();
     setPlayState("playing");
   };
 
   const pause = useCallback(() => {
-    constrollers?.pause();
+    lC.pause();
     setPlayState("paused");
-  }, [constrollers]);
-  // const play = useCallback(() => {
-  //   constrollers.forEach((controller) => {
-  //     controller.play();
-  //     debugger;
-  //     setPlayState("playing");
-  //   });
-  // }, [constrollers]);
-
-  // const pause = useCallback(() => {
-  //   constrollers.forEach((controller) => {
-  //     controller.pause();
-  //     setPlayState("paused");
-  //   });
-  // }, [constrollers]);
+  }, [controller]);
 
   return (
     <main>
+      <section>
+        <label>
+          <button onClick={consentToPlayback}>Ready?</button>
+        </label>
+      </section>
       <section>
         <div>
           <label htmlFor="roars">Want Roars every 5 minutes?</label>
@@ -128,15 +118,17 @@ export function App() {
           list="gain-vals"
           step="0.01"
           data-action="volume"
-          onChange={(e) => {
-            // if (controller?.volumeControl != null) {
-            //   controller?.volumeControl(parseFloat(e.currentTarget.value));
-            // }
-          }}
         />
       </section>
       <section>
-        <audio ref={audioRef} src="assets/rain.mp4" controls />
+        {getPlaybackPaths().map((config) => (
+          <Ardio
+            key={config.src}
+            {...config}
+            ref={config.ref}
+            src={config.src}
+          />
+        ))}
       </section>
     </main>
   );

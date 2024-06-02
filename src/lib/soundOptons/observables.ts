@@ -1,16 +1,35 @@
-import { Subject, combineLatest, fromEvent, map, take, tap } from "rxjs";
+import { Subject, combineLatest, map, take, tap } from "rxjs";
 import { setup } from "../components/ControlCenter";
-import { AudioSourceNode } from "./addAudio";
-const clickStream = fromEvent(window, "click");
-export const initSubject = new Subject<HTMLAudioElement>();
+import { nodesAreLoaded } from "../orchestrate";
+const hasConsented = new Subject<boolean>();
+export const audioSubject = new Subject<HTMLAudioElement[]>();
+
 export const setupStream = combineLatest([
-  clickStream.pipe(take(1)),
-  initSubject,
+  hasConsented.pipe(
+    take(1),
+    map(() => setup())
+  ),
+  audioSubject,
 ]).pipe(
   tap((props) => console.log("tap: ", props)),
-  map(([, el]) => {
-    const { audioCtx } = setup();
+  map(([context, audioNodes]) => {
+    const { audioCtx } = context;
     console.log("audioCtx: ", audioCtx);
-    return new AudioSourceNode(el, audioCtx);
+    return nodesAreLoaded(audioNodes, audioCtx);
   })
 );
+
+// get array of PlaybackConfig
+// for each PlaybackConfig:
+// put the AudioNode in AudioSourceNodes
+// return array of PlaybackImage
+//
+
+export function consentToPlayback() {
+  hasConsented.next(true);
+}
+
+export function domAudioReady(audioRefs: HTMLAudioElement[]) {
+  console.trace("Audiorefs: ", audioRefs);
+  audioSubject.next(audioRefs);
+}
