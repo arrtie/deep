@@ -22,7 +22,6 @@ export class AudioSourceNode {
   }
   play() {
     this.audioContext.resume().then(() => {
-      debugger;
       this.source.mediaElement.play();
     });
   }
