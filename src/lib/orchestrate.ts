@@ -34,7 +34,6 @@ function composeControls(configs: PlaybackImage[]) {
 
     intervals = configs.map(({ interval, src }) => {
       // Sound with a non-zero interval
-      debugger;
       if (interval > 0) {
         return setInterval(() => {
           src.play();
@@ -85,7 +84,6 @@ function matchAndMakePlaybackImage(
   const thisConfig = playbackPathArray.find((pathConfig) =>
     audio.src.includes(pathConfig.src)
   )!;
-  debugger;
   return makeConfig({
     ...thisConfig,
     src: new AudioSourceNode(audio, audioCtx),

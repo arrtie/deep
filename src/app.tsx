@@ -21,7 +21,7 @@ const constantRain: PlaybackPartial<string> = {
 
 const intervalRoar: PlaybackPartial<string> = {
   src: "assets/roar.mp3",
-  interval: 1000 * 2 * 5,
+  interval: 1000 * 60 * 5,
 };
 
 [constantRain, intervalRoar].forEach(
@@ -32,7 +32,7 @@ const intervalRoar: PlaybackPartial<string> = {
 
 export function App() {
   const [controller, setController] = useState<Composer>();
-  const [playState, setPlayState] = useState("loading");
+  const [playState, setPlayState] = useState("querying");
 
   const localController = useMemo(() => {
     if (controller == null) {
@@ -82,45 +82,62 @@ export function App() {
   }, [controller]);
 
   return (
-    <main>
-      <section>
-        <label>
-          <button onClick={consentToPlayback}>Ready?</button>
-        </label>
-      </section>
-      <section>
-        <div>
-          <label htmlFor="roars">Want Roars every 5 minutes?</label>
+    <main
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      {playState === "querying" ? (
+        <section>
+          <label>
+            <button
+              onClick={() => {
+                setPlayState("paused");
+                consentToPlayback();
+              }}
+            >
+              Ready?
+            </button>
+          </label>
+        </section>
+      ) : (
+        <section>
+          <div>
+            <label htmlFor="roars">Want Roars every 5 minutes?</label>
+            <input
+              id="roars"
+              type="checkbox"
+              checked={false}
+              onChange={(e) => {}}
+            />
+          </div>
+          {playState !== "playing" ? (
+            <button className={"button"} onClick={play}>
+              play
+            </button>
+          ) : (
+            <button className={"button"} onClick={pause}>
+              pause
+            </button>
+          )}
+          <label for="volume">VOL</label>
           <input
-            id="roars"
-            type="checkbox"
-            checked={false}
-            onChange={(e) => {}}
+            type="range"
+            id="volume"
+            class="control-volume"
+            min="0"
+            max="2"
+            value="1"
+            list="gain-vals"
+            step="0.01"
+            data-action="volume"
           />
-        </div>
-        {playState !== "playing" ? (
-          <button className={"button"} onClick={play}>
-            play
-          </button>
-        ) : (
-          <button className={"button"} onClick={pause}>
-            pause
-          </button>
-        )}
-        <label for="volume">VOL</label>
-        <input
-          type="range"
-          id="volume"
-          class="control-volume"
-          min="0"
-          max="2"
-          value="1"
-          list="gain-vals"
-          step="0.01"
-          data-action="volume"
-        />
-      </section>
-      <section>
+        </section>
+      )}
+      <aside style={{ visibility: "hidden" }}>
         {getPlaybackPaths().map((config) => (
           <Ardio
             key={config.src}
@@ -129,7 +146,7 @@ export function App() {
             src={config.src}
           />
         ))}
-      </section>
+      </aside>
     </main>
   );
 }
