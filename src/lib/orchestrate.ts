@@ -21,32 +21,69 @@ export type PlaybackPath = PlaybackBase<string>;
 
 export type Composer = ReturnType<typeof composeControls>;
 
-function composeControls(configs: PlaybackImage[]) {
-  let intervals: (number | undefined)[] = [];
+type ControlConfig = PlaybackImage & {
+  intervalRemaining: number;
+  intervalRef: undefined | number;
+};
+function composeControls(propConfigs: PlaybackImage[]) {
+  let timePlayed = 0;
+  let playStart: undefined | number;
+  let pauseStart: undefined | number;
+  const intervals: ControlConfig[] = [];
+
+  const configs = propConfigs.map((config) => {
+    const thisControlConfig = {
+      ...config,
+      intervalRemaining: 0,
+      intervalRef: undefined,
+    };
+    if (thisControlConfig.interval > 0) {
+      intervals.push(thisControlConfig);
+    }
+    return thisControlConfig;
+  });
 
   function play() {
     console.trace("ComposeControl play");
-    if (intervals.length > 0) {
-      intervals.forEach((interval) => {
-        clearInterval(interval);
-      });
-    }
+    playStart = performance.now();
 
-    intervals = configs.map(({ interval, src }) => {
-      // Sound with a non-zero interval
-      if (interval > 0) {
-        return setInterval(() => {
-          src.play();
-        }, interval);
+    configs.forEach((config: ControlConfig) => {
+      if (config.interval > 0) {
+        if (config.intervalRemaining > 0) {
+          console.log("intervalRemaining: ", config.intervalRemaining);
+          config.intervalRef = setTimeout(() => {
+            config.src.play();
+            config.intervalRemaining = 0;
+            config.intervalRef = setInterval(() => {
+              config.src.play();
+            }, config.interval);
+          }, config.intervalRemaining);
+          return;
+        }
+        debugger;
+        config.intervalRef = setInterval(() => {
+          config.src.play();
+        }, config.interval);
+        return;
       }
-      // Sounds without interval are immiadtely played
-      src.play();
-      return undefined;
+      config.src.play();
     });
   }
+  function pause() {
+    pauseStart = performance.now();
+    timePlayed = timePlayed + (pauseStart - (playStart ?? pauseStart)); // no guarantee pause was called first
+    configs.forEach((config) => {
+      if (config.interval > 0) {
+        clearInterval(config.intervalRef);
+        config.intervalRemaining = timePlayed % config.interval;
+      }
+      config.src.pause();
+    });
+  }
+
   return {
     play,
-    pause: () => null,
+    pause,
   };
 }
 
