@@ -1,31 +1,43 @@
 import { RefObject, createRef } from "preact";
+import { BehaviorSubject } from "rxjs";
 import { AudioSourceNode } from "./soundOptons/addAudio";
 
 export type PlaybackSource = HTMLAudioElement | AudioSourceNode | string;
 
-export type PlaybackBase<T = PlaybackSource> = {
-  src: T;
+export type PlaybackPropeties = {
   interval: number;
   loop: boolean;
   repeat: boolean;
-  ref: RefObject<HTMLAudioElement>;
 };
 
-export type PlaybackPartial<T> = Partial<PlaybackBase<T>> & { src: T };
+// the big bad with all possible flags
+export type PlaybackBase = PlaybackPropeties & {
+  src: string;
+};
 
-export type PlaybackConfig = PlaybackBase<HTMLAudioElement>;
+export type PlaybackBasePartial = Partial<PlaybackPropeties> & { src: string };
 
-export type PlaybackImage = PlaybackBase<AudioSourceNode>;
-
-export type PlaybackPath = PlaybackBase<string>;
+// all props are wild!
+export type PlaybackPartial = Partial<PlaybackBase>;
+// guaranteed the audio's path for the src attribute
+export type Playbacksrc = PlaybackBase;
+// guaranteed a ref
+export type PlaybackRef = PlaybackBase & {
+  ref: RefObject<HTMLAudioElement>;
+};
+// guaranteed a sourceNode
+export type PlaybackSourceNode = PlaybackBase & {
+  sourceNode: AudioSourceNode;
+};
 
 export type Composer = ReturnType<typeof composeControls>;
 
-type ControlConfig = PlaybackImage & {
+type ControlConfig = PlaybackSourceNode & {
   intervalRemaining: number;
   intervalRef: undefined | number;
 };
-function composeControls(propConfigs: PlaybackImage[]) {
+
+function composeControls(propConfigs: PlaybackSourceNode[]) {
   let timePlayed = 0;
   let playStart: undefined | number;
   let pauseStart: undefined | number;
@@ -52,23 +64,23 @@ function composeControls(propConfigs: PlaybackImage[]) {
         if (config.intervalRemaining > 0) {
           console.log("intervalRemaining: ", config.intervalRemaining);
           config.intervalRef = setTimeout(() => {
-            config.src.play();
+            config.sourceNode.play();
             config.intervalRemaining = 0;
             config.intervalRef = setInterval(() => {
-              config.src.play();
+              config.sourceNode.play();
             }, config.interval);
           }, config.intervalRemaining);
           return;
         }
-        debugger;
         config.intervalRef = setInterval(() => {
-          config.src.play();
+          config.sourceNode.play();
         }, config.interval);
         return;
       }
-      config.src.play();
+      config.sourceNode.play();
     });
   }
+
   function pause() {
     pauseStart = performance.now();
     timePlayed = timePlayed + (pauseStart - (playStart ?? pauseStart)); // no guarantee pause was called first
@@ -77,7 +89,7 @@ function composeControls(propConfigs: PlaybackImage[]) {
         clearInterval(config.intervalRef);
         config.intervalRemaining = timePlayed % config.interval;
       }
-      config.src.pause();
+      config.sourceNode.pause();
     });
   }
 
@@ -87,12 +99,12 @@ function composeControls(propConfigs: PlaybackImage[]) {
   };
 }
 
-export function makeConfig<T>({
+export function makePlaybackRef({
   src,
   interval = 0,
   loop = false,
   repeat = false,
-}: PlaybackPartial<T>): PlaybackBase<T> {
+}: PlaybackPartial & { src: string }): PlaybackRef {
   const ref = createRef<HTMLAudioElement>();
   return {
     src,
@@ -103,36 +115,74 @@ export function makeConfig<T>({
   };
 }
 
-const playbackPathArray: PlaybackPath[] = [];
-
-export function addPlaybackPath(playbackPath: PlaybackPath) {
-  playbackPathArray.push(playbackPath);
+export function makePlaybackBase({
+  src,
+  interval = 0,
+  loop = false,
+  repeat = false,
+}: PlaybackBasePartial) {
+  return {
+    src,
+    interval,
+    loop,
+    repeat,
+  };
 }
 
-export function getPlaybackPaths() {
-  return playbackPathArray;
+export function makePlaybackSourceNode() {}
+
+const playbacksrcArray: Playbacksrc[] = [];
+
+export const playbackSubject = new BehaviorSubject<Playbacksrc[]>(
+  playbacksrcArray
+);
+
+export function addPlaybacksrc(pbsrc: Playbacksrc) {
+  playbacksrcArray.push(pbsrc);
+  playbackSubject.next(playbacksrcArray);
+}
+
+export function getPlaybacksrcs() {
+  return playbacksrcArray;
 }
 
 // Once you got a node
-function matchAndMakePlaybackImage(
+function matchAndMakePlaybackSourceNode(
   audio: HTMLAudioElement,
   audioCtx: AudioContext
-): PlaybackImage {
-  const thisConfig = playbackPathArray.find((pathConfig) =>
+): PlaybackSourceNode | null {
+  const thisConfig = playbacksrcArray.find((pathConfig) =>
     audio.src.includes(pathConfig.src)
-  )!;
-  return makeConfig({
+  );
+  if (thisConfig == null) {
+    return null;
+  }
+  return {
     ...thisConfig,
-    src: new AudioSourceNode(audio, audioCtx),
-  });
+    sourceNode: new AudioSourceNode(audio, audioCtx),
+  };
 }
 
 export function nodesAreLoaded(
   audios: HTMLAudioElement[],
   audioCtx: AudioContext
 ) {
-  const playbackImages = audios.map((audio) =>
-    matchAndMakePlaybackImage(audio, audioCtx)
-  );
-  return composeControls(playbackImages);
+  const playbackSources = audios
+    .map((audio) => matchAndMakePlaybackSourceNode(audio, audioCtx))
+    .filter((source): source is PlaybackSourceNode => source != null);
+  return composeControls(playbackSources);
+}
+
+const playbackRefMap = new Map<string, PlaybackRef>();
+
+export function getPlaybackRefArray() {
+  return Array.from(playbackRefMap.entries()).map(([, val]) => val);
+}
+
+export function addPlaybackRef(ref: PlaybackRef) {
+  playbackRefMap.set(ref.src, ref);
+}
+
+export function addPlaybackRefs(refs: PlaybackRef[]) {
+  refs.forEach((ref) => addPlaybackRef(ref));
 }

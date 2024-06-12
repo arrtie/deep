@@ -1,9 +1,9 @@
 import { Ref } from "preact";
 import { forwardRef } from "preact/compat";
-import { PlaybackPath } from "../orchestrate";
+import { PlaybackRef } from "../orchestrate";
 
 const Ardio = forwardRef(
-  ({ src, loop }: PlaybackPath, ref: Ref<HTMLAudioElement>) => {
+  ({ src, loop }: PlaybackRef, ref: Ref<HTMLAudioElement>) => {
     return <audio src={src} loop={loop} ref={ref} controls />;
   }
 );

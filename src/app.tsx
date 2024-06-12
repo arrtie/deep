@@ -1,82 +1,36 @@
-import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
+import { useCallback, useState } from "preact/hooks";
 import "./app.css";
-import Ardio from "./lib/components/Ardio";
-import {
-  Composer,
-  PlaybackPartial,
-  addPlaybackPath,
-  getPlaybackPaths,
-  makeConfig,
-} from "./lib/orchestrate";
-import {
-  consentToPlayback,
-  domAudioReady,
-  setupStream,
-} from "./lib/soundOptons/observables";
+import ArdioGroup from "./lib/components/Ardio/ArdioGroup";
+import useController from "./lib/components/Controller/useController";
+import Ready from "./lib/components/Ready";
+import { PlaybackBasePartial, makePlaybackBase } from "./lib/orchestrate";
+import { consentToPlayback } from "./lib/soundOptons/observables";
 
-const constantRain: PlaybackPartial<string> = {
+const constantRain: PlaybackBasePartial = {
   src: "assets/rain.mp4",
   loop: true,
 };
 
-const intervalRoar: PlaybackPartial<string> = {
+const intervalRoar: PlaybackBasePartial = {
   src: "assets/roar.mp3",
   interval: 1000 * 60 * 5,
 };
 
-[constantRain, intervalRoar].forEach(
-  (configPartial: PlaybackPartial<string>) => {
-    addPlaybackPath(makeConfig(configPartial));
-  }
-);
+const playbacksrcs = [constantRain, intervalRoar].map(makePlaybackBase);
 
 export function App() {
-  const [controller, setController] = useState<Composer>();
   const [playState, setPlayState] = useState("querying");
+  const lC = useController();
 
-  const localController = useMemo(() => {
-    if (controller == null) {
-      return {
-        play() {
-          console.log("fake play");
-        },
-        pause() {
-          console.log("fake pause");
-        },
-      };
-    }
-    return controller;
-  }, [controller]);
-  const lC = localController;
-
-  useEffect(() => {
-    const sub = setupStream.subscribe({
-      next: (controller: Composer) => {
-        console.log("NEXTED!", controller);
-        setController(controller);
-        setPlayState("paused");
-        sub.unsubscribe();
-      },
-    });
-    const justAudio: HTMLAudioElement[] = getPlaybackPaths()
-      .map((config) => config.ref.current)
-      .filter((nodeOrNull): nodeOrNull is HTMLAudioElement => {
-        return nodeOrNull !== null;
-      });
-
-    domAudioReady(justAudio);
-    return sub.unsubscribe;
-  }, []);
-
-  const play = () => {
+  const play = useCallback(() => {
     lC.play();
     setPlayState("playing");
-  };
+  }, [lC]);
 
   const pause = useCallback(() => {
     lC.pause();
     setPlayState("paused");
-  }, [controller]);
+  }, [lC]);
 
   return (
     <main
@@ -88,29 +42,14 @@ export function App() {
       }}
     >
       {playState === "querying" ? (
-        <section>
-          <label>
-            <button
-              onClick={() => {
-                setPlayState("paused");
-                consentToPlayback();
-              }}
-            >
-              Ready?
-            </button>
-          </label>
-        </section>
+        <Ready
+          onClick={() => {
+            setPlayState("paused");
+            consentToPlayback();
+          }}
+        />
       ) : (
         <section>
-          <div>
-            <label htmlFor="roars">Want Roars every 5 minutes?</label>
-            <input
-              id="roars"
-              type="checkbox"
-              checked={false}
-              onChange={(e) => {}}
-            />
-          </div>
           {playState !== "playing" ? (
             <button className={"button"} onClick={play}>
               play
@@ -135,14 +74,7 @@ export function App() {
         </section>
       )}
       <aside style={{ visibility: "hidden" }}>
-        {getPlaybackPaths().map((config) => (
-          <Ardio
-            key={config.src}
-            {...config}
-            ref={config.ref}
-            src={config.src}
-          />
-        ))}
+        <ArdioGroup playbacksrcs={playbacksrcs} />
       </aside>
     </main>
   );

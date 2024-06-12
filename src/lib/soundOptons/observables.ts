@@ -1,10 +1,11 @@
 import { Subject, combineLatest, map, take, tap } from "rxjs";
 import { setup } from "../components/ControlCenter";
 import { nodesAreLoaded } from "../orchestrate";
+
 const hasConsented = new Subject<boolean>();
 export const audioSubject = new Subject<HTMLAudioElement[]>();
 
-export const setupStream = combineLatest([
+export const composerStream = combineLatest([
   hasConsented.pipe(
     take(1),
     map(() => setup())
