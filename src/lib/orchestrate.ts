@@ -1,31 +1,49 @@
 import { RefObject, createRef } from "preact";
-import { AudioSourceNode } from "./soundOptons/addAudio";
+import { NextObserver, Subject, scan } from "rxjs";
+import { subscriptionWrapper } from "../utils/subscriptionWrapper";
+import { AudioSourceNode, makeAudioSourceNode } from "./soundOptons/addAudio";
 
 export type PlaybackSource = HTMLAudioElement | AudioSourceNode | string;
 
-export type PlaybackBase<T = PlaybackSource> = {
-  src: T;
+export type PlaybackPropety = "interval" | "loop";
+export type PlaybackPropeties = {
   interval: number;
   loop: boolean;
-  repeat: boolean;
-  ref: RefObject<HTMLAudioElement>;
 };
 
-export type PlaybackPartial<T> = Partial<PlaybackBase<T>> & { src: T };
+// the big bad with all possible flags
+export type PlaybackBase = PlaybackPropeties & {
+  src: string;
+};
 
-export type PlaybackConfig = PlaybackBase<HTMLAudioElement>;
+export type PlaybackBasePartial = Partial<PlaybackPropeties> & { src: string };
 
-export type PlaybackImage = PlaybackBase<AudioSourceNode>;
-
-export type PlaybackPath = PlaybackBase<string>;
+// guaranteed a ref
+export type PlaybackRef = PlaybackBase & {
+  ref: RefObject<HTMLAudioElement>;
+};
+// guaranteed a sourceNode
+export type PlaybackSourceNode = PlaybackBase & {
+  sourceNode: AudioSourceNode;
+};
 
 export type Composer = ReturnType<typeof composeControls>;
 
-type ControlConfig = PlaybackImage & {
+type ControlConfig = PlaybackSourceNode & {
   intervalRemaining: number;
   intervalRef: undefined | number;
 };
-function composeControls(propConfigs: PlaybackImage[]) {
+
+export const fakeController = {
+  play() {
+    console.log("fake play");
+  },
+  pause() {
+    console.log("fake pause");
+  },
+};
+
+function composeControls(propConfigs: PlaybackSourceNode[]) {
   let timePlayed = 0;
   let playStart: undefined | number;
   let pauseStart: undefined | number;
@@ -44,40 +62,38 @@ function composeControls(propConfigs: PlaybackImage[]) {
   });
 
   function play() {
-    console.trace("ComposeControl play");
     playStart = performance.now();
-
     configs.forEach((config: ControlConfig) => {
       if (config.interval > 0) {
         if (config.intervalRemaining > 0) {
-          console.log("intervalRemaining: ", config.intervalRemaining);
           config.intervalRef = setTimeout(() => {
-            config.src.play();
+            config.sourceNode.play();
             config.intervalRemaining = 0;
             config.intervalRef = setInterval(() => {
-              config.src.play();
-            }, config.interval);
+              config.sourceNode.play();
+            }, config.interval * 1000);
           }, config.intervalRemaining);
           return;
         }
-        debugger;
         config.intervalRef = setInterval(() => {
-          config.src.play();
-        }, config.interval);
+          config.sourceNode.play();
+        }, config.interval * 1000);
         return;
       }
-      config.src.play();
+
+      config.sourceNode.play();
     });
   }
+
   function pause() {
     pauseStart = performance.now();
     timePlayed = timePlayed + (pauseStart - (playStart ?? pauseStart)); // no guarantee pause was called first
     configs.forEach((config) => {
       if (config.interval > 0) {
         clearInterval(config.intervalRef);
-        config.intervalRemaining = timePlayed % config.interval;
+        config.intervalRemaining = timePlayed % (config.interval * 1000);
       }
-      config.src.pause();
+      config.sourceNode.pause();
     });
   }
 
@@ -87,52 +103,91 @@ function composeControls(propConfigs: PlaybackImage[]) {
   };
 }
 
-export function makeConfig<T>({
+export function makePlaybackRef({
   src,
   interval = 0,
   loop = false,
-  repeat = false,
-}: PlaybackPartial<T>): PlaybackBase<T> {
+}: PlaybackBase): PlaybackRef {
   const ref = createRef<HTMLAudioElement>();
   return {
     src,
     interval,
     loop,
-    repeat,
     ref,
   };
 }
 
-const playbackPathArray: PlaybackPath[] = [];
-
-export function addPlaybackPath(playbackPath: PlaybackPath) {
-  playbackPathArray.push(playbackPath);
-}
-
-export function getPlaybackPaths() {
-  return playbackPathArray;
+export function makePlaybackBase({
+  src,
+  interval = 0,
+  loop = false,
+}: PlaybackBasePartial) {
+  return {
+    src,
+    interval,
+    loop,
+  };
 }
 
 // Once you got a node
-function matchAndMakePlaybackImage(
+function matchAndMakePlaybackSourceNode(
   audio: HTMLAudioElement,
   audioCtx: AudioContext
-): PlaybackImage {
-  const thisConfig = playbackPathArray.find((pathConfig) =>
+): PlaybackSourceNode | null {
+  const thisConfig = getPlaybackRefArray().find((pathConfig) =>
     audio.src.includes(pathConfig.src)
-  )!;
-  return makeConfig({
+  );
+  if (thisConfig == null) {
+    return null;
+  }
+  return {
     ...thisConfig,
-    src: new AudioSourceNode(audio, audioCtx),
-  });
+    sourceNode: makeAudioSourceNode(audio, audioCtx),
+  };
 }
 
+// we have audio elements, let's append them to the audiocontext
 export function nodesAreLoaded(
   audios: HTMLAudioElement[],
   audioCtx: AudioContext
 ) {
-  const playbackImages = audios.map((audio) =>
-    matchAndMakePlaybackImage(audio, audioCtx)
-  );
-  return composeControls(playbackImages);
+  const playbackSources = audios
+    .map((audio) => matchAndMakePlaybackSourceNode(audio, audioCtx))
+    .filter((source): source is PlaybackSourceNode => source != null);
+  return composeControls(playbackSources);
+}
+
+const playbackRefMap = new Map<string, PlaybackRef>();
+
+export function getPlaybackRefArray() {
+  return Array.from(playbackRefMap.entries()).map(([, val]) => val);
+}
+
+export function addPlaybackRef(ref: PlaybackRef) {
+  playbackRefMap.set(ref.src, ref);
+}
+
+export function addPlaybackRefs(refs: PlaybackRef[]) {
+  playbackRefMap.clear();
+  refs.forEach((ref) => addPlaybackRef(ref));
+}
+
+export function addPlaybackOptionToQueue(option: PlaybackBase) {
+  playbackQueueSubject.next(option);
+}
+
+const playbackQueueSubject = new Subject<PlaybackBase>();
+export function addPlaybackToQueue(base: PlaybackBase) {
+  playbackQueueSubject.next(base);
+}
+
+const playbackQueueStream = playbackQueueSubject.pipe(
+  scan((acc: PlaybackBase[], option: PlaybackBase) => {
+    acc.push(option);
+    return acc;
+  }, [])
+);
+
+export function subscribeToPlaybackQueue(obs: NextObserver<PlaybackBase[]>) {
+  return subscriptionWrapper(playbackQueueStream)(obs);
 }

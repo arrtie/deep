@@ -1,6 +1,7 @@
 **todo**
 
-- pause button
+x pause button
+
 - separate main from a controlled playback
 - unit tests
 - less ugly styling

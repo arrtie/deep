@@ -7,6 +7,19 @@
 // all emissions are returned
 // AudioNodes should all hook up to audiocontext
 
+const audioSourceNodeMap = new Map<string, AudioSourceNode>();
+
+export function makeAudioSourceNode(
+  audio: HTMLAudioElement,
+  audioContext: AudioContext
+) {
+  const existingSourceNode = audioSourceNodeMap.get(audio.src);
+  if (existingSourceNode != null) {
+    return existingSourceNode;
+  }
+  return new AudioSourceNode(audio, audioContext);
+}
+
 export class AudioSourceNode {
   audio: HTMLAudioElement;
   audioContext: AudioContext;
@@ -18,10 +31,17 @@ export class AudioSourceNode {
     this.audio = audio;
     this.audioContext = audioContext;
     this.source = audioContext.createMediaElementSource(audio);
-    this.source.connect(this.audioContext.destination);
+    this.source.connect(audioContext.destination);
+
     this.audio.onloadedmetadata = (e) => {
       console.log("onloadedmetadata", e);
     };
+    this.audio.onerror = (e) => {
+      console.error(
+        `Error ${this?.audio?.error?.code}; details: ${this?.audio?.error?.message}`
+      );
+    };
+    audioSourceNodeMap.set(audio.src, this);
   }
 
   play() {
@@ -32,7 +52,6 @@ export class AudioSourceNode {
   }
 
   pause() {
-    console.dir("source:", this);
     this.audioContext.suspend();
     this.pauseStart = performance.now();
   }
