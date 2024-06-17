@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
-import { Composer, fakeController } from "../../orchestrate";
-import { composerStream } from "../../soundOptons/observables";
+import { Composer, fakeController } from "../../orchestrate/orchestrate";
+import { composerStream } from "../../streams/observables";
 
 // returns a controller on each composerStream emission ( your audio elements are loaded!)
 export default function useController({

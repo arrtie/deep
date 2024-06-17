@@ -36,7 +36,7 @@ export class AudioSourceNode {
     this.audio.onloadedmetadata = (e) => {
       console.log("onloadedmetadata", e);
     };
-    this.audio.onerror = (e) => {
+    this.audio.onerror = () => {
       console.error(
         `Error ${this?.audio?.error?.code}; details: ${this?.audio?.error?.message}`
       );

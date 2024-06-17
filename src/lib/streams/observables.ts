@@ -1,6 +1,6 @@
 import { BehaviorSubject, combineLatest, map, tap } from "rxjs";
 import { setup } from "../components/ControlCenter";
-import { fakeController, nodesAreLoaded } from "../orchestrate";
+import { fakeController, nodesAreLoaded } from "../orchestrate/orchestrate";
 
 const hasConsented = new BehaviorSubject<boolean>(false);
 export const audioSubject = new BehaviorSubject<HTMLAudioElement[]>([]);

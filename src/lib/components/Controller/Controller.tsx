@@ -1,6 +1,7 @@
 import { useCallback, useState } from "preact/hooks";
 import usePlaybackOptions from "../../soundOptons/usePlaybackOptions";
 import ArdioGroup from "../Ardio/ArdioGroup";
+import PlaybackViewer from "../PlaybackViewer";
 import AudioPlayer from "../Player/Player";
 import useController from "./useController";
 
@@ -31,6 +32,7 @@ export default function Controller() {
       <section>
         <AudioPlayer />
       </section>
+      <PlaybackViewer userPlaybackOptions={userPlaybackOptions} />
       <section>
         {playState !== "playing" ? (
           <button className={"button"} onClick={play}>

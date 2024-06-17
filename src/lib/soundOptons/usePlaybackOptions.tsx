@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
-import { PlaybackBase, subscribeToPlaybackQueue } from "../orchestrate";
+import { PlaybackBase } from "../orchestrate/orchestrate";
+import { subscribeToPlaybackQueue } from "../streams/PlaybackQueue";
 
 export default function usePlaybackOptions(): PlaybackBase[] {
   // subscribe to stream

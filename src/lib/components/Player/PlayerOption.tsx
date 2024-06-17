@@ -1,5 +1,6 @@
 import { useCallback } from "preact/hooks";
-import { PlaybackBase, addPlaybackOptionToQueue } from "../../orchestrate";
+import { PlaybackBase } from "../../orchestrate/orchestrate";
+import { addPlaybackOptionToQueue } from "../../streams/PlaybackQueue";
 
 function makeSubmitHandler(src: string, background: boolean) {
   return function handleSubmit(e: Event) {
@@ -27,7 +28,7 @@ export default function PlayerOption({
   title: string;
 }) {
   const onHandleSubmit = useCallback(
-    () => makeSubmitHandler(src, background),
+    (e: Event) => makeSubmitHandler(src, background)(e),
     [src, background]
   );
 

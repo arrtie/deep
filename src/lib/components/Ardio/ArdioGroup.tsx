@@ -2,11 +2,11 @@ import { useEffect, useMemo } from "preact/hooks";
 import {
   PlaybackBase,
   PlaybackRef,
-  addPlaybackRefs,
   makePlaybackRef,
-} from "../../orchestrate";
+} from "../../orchestrate/orchestrate";
 
-import { domAudioReady } from "../../soundOptons/observables";
+import { addPlaybackRefs } from "../../orchestrate/playbackRefs";
+import { domAudioReady } from "../../streams/observables";
 import Ardio from "../Ardio";
 
 export default function ArdioGroup({

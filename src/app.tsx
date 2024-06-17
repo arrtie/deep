@@ -2,11 +2,10 @@ import { useState } from "preact/hooks";
 import "./app.css";
 import Controller from "./lib/components/Controller/Controller";
 import Ready from "./lib/components/Ready";
-import { consentToPlayback } from "./lib/soundOptons/observables";
+import { consentToPlayback } from "./lib/streams/observables";
 
 export function App() {
   const [hasConsented, setHasConsented] = useState(false);
-
   return (
     <main
       style={{
