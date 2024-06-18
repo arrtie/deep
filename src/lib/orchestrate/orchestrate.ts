@@ -42,6 +42,12 @@ export const fakeController = {
   },
 };
 
+function convertMinutesToSeconds(min: number) {
+  return min * 60 * 1000;
+}
+
+const intervalConversion = convertMinutesToSeconds;
+
 function composeControls(propConfigs: PlaybackSourceNode[]) {
   let timePlayed = 0;
   let playStart: undefined | number;
@@ -70,13 +76,13 @@ function composeControls(propConfigs: PlaybackSourceNode[]) {
             config.intervalRemaining = 0;
             config.intervalRef = setInterval(() => {
               config.sourceNode.play();
-            }, config.interval * 1000);
+            }, intervalConversion(config.interval));
           }, config.intervalRemaining);
           return;
         }
         config.intervalRef = setInterval(() => {
           config.sourceNode.play();
-        }, config.interval * 1000);
+        }, intervalConversion(config.interval));
         return;
       }
 
@@ -90,7 +96,8 @@ function composeControls(propConfigs: PlaybackSourceNode[]) {
     configs.forEach((config) => {
       if (config.interval > 0) {
         clearInterval(config.intervalRef);
-        config.intervalRemaining = timePlayed % (config.interval * 1000);
+        config.intervalRemaining =
+          timePlayed % intervalConversion(config.interval);
       }
       config.sourceNode.pause();
     });
