@@ -1,7 +1,6 @@
 import { RefObject, createRef } from "preact";
-import { NextObserver, Subject, scan } from "rxjs";
-import { subscriptionWrapper } from "../utils/subscriptionWrapper";
-import { AudioSourceNode, makeAudioSourceNode } from "./soundOptons/addAudio";
+import { AudioSourceNode, makeAudioSourceNode } from "../soundOptons/addAudio";
+import { getPlaybackRefArray } from "./playbackRefs";
 
 export type PlaybackSource = HTMLAudioElement | AudioSourceNode | string;
 
@@ -43,6 +42,12 @@ export const fakeController = {
   },
 };
 
+function convertMinutesToSeconds(min: number) {
+  return min * 60 * 1000;
+}
+
+const intervalConversion = convertMinutesToSeconds;
+
 function composeControls(propConfigs: PlaybackSourceNode[]) {
   let timePlayed = 0;
   let playStart: undefined | number;
@@ -71,13 +76,13 @@ function composeControls(propConfigs: PlaybackSourceNode[]) {
             config.intervalRemaining = 0;
             config.intervalRef = setInterval(() => {
               config.sourceNode.play();
-            }, config.interval * 1000);
+            }, intervalConversion(config.interval));
           }, config.intervalRemaining);
           return;
         }
         config.intervalRef = setInterval(() => {
           config.sourceNode.play();
-        }, config.interval * 1000);
+        }, intervalConversion(config.interval));
         return;
       }
 
@@ -91,7 +96,8 @@ function composeControls(propConfigs: PlaybackSourceNode[]) {
     configs.forEach((config) => {
       if (config.interval > 0) {
         clearInterval(config.intervalRef);
-        config.intervalRemaining = timePlayed % (config.interval * 1000);
+        config.intervalRemaining =
+          timePlayed % intervalConversion(config.interval);
       }
       config.sourceNode.pause();
     });
@@ -155,39 +161,4 @@ export function nodesAreLoaded(
     .map((audio) => matchAndMakePlaybackSourceNode(audio, audioCtx))
     .filter((source): source is PlaybackSourceNode => source != null);
   return composeControls(playbackSources);
-}
-
-const playbackRefMap = new Map<string, PlaybackRef>();
-
-export function getPlaybackRefArray() {
-  return Array.from(playbackRefMap.entries()).map(([, val]) => val);
-}
-
-export function addPlaybackRef(ref: PlaybackRef) {
-  playbackRefMap.set(ref.src, ref);
-}
-
-export function addPlaybackRefs(refs: PlaybackRef[]) {
-  playbackRefMap.clear();
-  refs.forEach((ref) => addPlaybackRef(ref));
-}
-
-export function addPlaybackOptionToQueue(option: PlaybackBase) {
-  playbackQueueSubject.next(option);
-}
-
-const playbackQueueSubject = new Subject<PlaybackBase>();
-export function addPlaybackToQueue(base: PlaybackBase) {
-  playbackQueueSubject.next(base);
-}
-
-const playbackQueueStream = playbackQueueSubject.pipe(
-  scan((acc: PlaybackBase[], option: PlaybackBase) => {
-    acc.push(option);
-    return acc;
-  }, [])
-);
-
-export function subscribeToPlaybackQueue(obs: NextObserver<PlaybackBase[]>) {
-  return subscriptionWrapper(playbackQueueStream)(obs);
 }

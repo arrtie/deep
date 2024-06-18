@@ -1,8 +1,8 @@
 **todo**
 
 x pause button
+x separate main from a controlled playback
 
-- separate main from a controlled playback
 - unit tests
 - less ugly styling
 - CI/CD

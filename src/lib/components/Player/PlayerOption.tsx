@@ -1,5 +1,6 @@
 import { useCallback } from "preact/hooks";
-import { PlaybackBase, addPlaybackOptionToQueue } from "../../orchestrate";
+import { PlaybackBase } from "../../orchestrate/orchestrate";
+import { addPlaybackOptionToQueue } from "../../streams/PlaybackQueue";
 
 function makeSubmitHandler(src: string, background: boolean) {
   return function handleSubmit(e: Event) {
@@ -10,9 +11,10 @@ function makeSubmitHandler(src: string, background: boolean) {
     if (intervalInput == null) {
       throw new Error("why no find interval input?");
     }
+    const parsedInterval = parseInt(intervalInput.value);
     const playbackBase: PlaybackBase = {
       src,
-      interval: parseInt(intervalInput.value),
+      interval: Number.isNaN(parsedInterval) ? 0 : parsedInterval,
       loop: background,
     };
     addPlaybackOptionToQueue(playbackBase);
@@ -27,24 +29,24 @@ export default function PlayerOption({
   title: string;
 }) {
   const onHandleSubmit = useCallback(
-    () => makeSubmitHandler(src, background),
+    (e: Event) => makeSubmitHandler(src, background)(e),
     [src, background]
   );
-
   return (
     <form
       onSubmit={onHandleSubmit}
       style={{
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "purple",
+        backgroundColor: background ? "purple" : "rebeccapurple",
         padding: "16px",
         boxShadow: "6px 6px 6px black",
       }}
     >
       <h5>{title}</h5>
-      <label>
-        interval: {/* plays this sound on an interval; in seconds  */}
+      <label style={{ visibility: background ? "hidden" : "initial" }}>
+        interval (in minutes):{" "}
+        {/* plays this sound on an interval; in minutes  */}
         <input type="number" name="interval" />
       </label>
       <button type="submit">Add</button>
