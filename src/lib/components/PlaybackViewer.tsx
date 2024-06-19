@@ -38,14 +38,18 @@ export default function PlaybackViewer({
           >
             <p>{titleMap.get(option.src)}</p>
             {option.interval === 0 ? null : (
-              <p>Repeat ever {option.interval} min.</p>
+              <p>Repeat every {option.interval} min.</p>
             )}
           </div>
         ))}
       </div>
-      <button type="button" onClick={() => clearPlaybackQueue()}>
-        CLEAR
-      </button>
+      {userPlaybackOptions.length === 0 ? null : (
+        <aside style={{ flex: "1 1 auto" }}>
+          <button type="button" onClick={() => clearPlaybackQueue()}>
+            CLEAR
+          </button>
+        </aside>
+      )}
     </section>
   );
 }

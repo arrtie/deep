@@ -40,7 +40,7 @@ export default function PlayerOption({
         flexDirection: "column",
         backgroundColor: background ? "purple" : "rebeccapurple",
         padding: "16px",
-        boxShadow: "6px 6px 6px black",
+        boxShadow: "black 6px 6px",
       }}
     >
       <h5>{title}</h5>
