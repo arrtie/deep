@@ -41,11 +41,12 @@ export default function PlayerOption({
         backgroundColor: background ? "purple" : "rebeccapurple",
         padding: "16px",
         boxShadow: "black 6px 6px",
+        minWidth: "fit-content",
       }}
     >
       <h5>{title}</h5>
-      <label style={{ visibility: background ? "hidden" : "initial" }}>
-        interval (in minutes):{" "}
+      <label style={{ display: background ? "none" : "initial" }}>
+        interval
         {/* plays this sound on an interval; in minutes  */}
         <input type="number" name="interval" />
       </label>

@@ -3,8 +3,9 @@
 // it's name
 // if it's a background
 
+import { useMemo } from "preact/hooks";
 import { PlaybackBase } from "../orchestrate/orchestrate";
-import { clearPlaybackQueue } from "../streams/PlaybackQueue";
+import usePlaybackOptions from "../soundOptons/usePlaybackOptions";
 
 const titleMap = new Map([
   ["assets/whitenoise.mp4", "Whitenoise"],
@@ -12,44 +13,87 @@ const titleMap = new Map([
   ["assets/rain.mp4", "Rain"],
 ]);
 
-export default function PlaybackViewer({
-  userPlaybackOptions,
-}: {
-  userPlaybackOptions: PlaybackBase[];
-}) {
+export default function PlaybackViewer() {
+  const userPlaybackOptions = usePlaybackOptions();
+  const [bg, opt] = useMemo(() => {
+    const _bg: PlaybackBase[] = [];
+    const _opt: PlaybackBase[] = [];
+    userPlaybackOptions.forEach((option) => {
+      if (option.interval === 0) {
+        _bg.push(option);
+        return;
+      }
+      _opt.push(option);
+    });
+    return [_bg, _opt];
+  }, [userPlaybackOptions]);
   return (
-    <section style={{ display: "flex", justifyContent: "center" }}>
+    // <section
+    //   style={{
+    //     display: "flex",
+    //     justifyContent: "flex-start",
+    //     alignItems: "flex-start",
+    //     flexDirection: "column",
+    //   }}
+    // >
+    <>
       <div
         style={{
           display: "flex",
-          justifyContent: "center",
+          justifyContent: "flex-start",
+          alignItems: "center",
           flexDirection: "row",
         }}
       >
-        {userPlaybackOptions.map((option) => (
-          <div
+        <div
+          style={{
+            padding: "8px",
+          }}
+        >
+          BG:
+        </div>
+        {bg.map((option) => (
+          <p
             style={{
-              flex: "1 1 auto",
+              width: "fit-content",
               borderRadius: "4px",
-              margin: "8px",
               padding: "8px",
-              backgroundColor: "steelblue",
+              backgroundColor: "hotpink",
             }}
           >
-            <p>{titleMap.get(option.src)}</p>
-            {option.interval === 0 ? null : (
-              <p>Repeat every {option.interval} min.</p>
-            )}
-          </div>
+            {titleMap.get(option.src)}
+          </p>
         ))}
       </div>
-      {userPlaybackOptions.length === 0 ? null : (
-        <aside style={{ flex: "1 1 auto" }}>
-          <button type="button" onClick={() => clearPlaybackQueue()}>
-            CLEAR
-          </button>
-        </aside>
-      )}
-    </section>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-start",
+          alignItems: "center",
+          flexDirection: "row",
+        }}
+      >
+        <div
+          style={{
+            padding: "8px",
+          }}
+        >
+          OPT:
+        </div>
+        {opt.map((option) => (
+          <p
+            style={{
+              width: "fit-content",
+              borderRadius: "4px",
+              padding: "8px",
+              backgroundColor: "blue",
+            }}
+          >
+            {titleMap.get(option.src)}x{option.interval}min.
+          </p>
+        ))}
+      </div>
+    </>
+    // </section>
   );
 }

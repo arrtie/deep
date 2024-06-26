@@ -5,30 +5,22 @@ import WhitenoisePlayerOption from "./Option/Whitenoise";
 
 const sectionStyles: string | CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+  gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
   gap: "16px",
 };
 
 export default function AudioPlayer() {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "flex-start",
-      }}
-    >
-      <section>
-        <h5>Background Noises</h5>
-        <div style={sectionStyles}>
-          <RainPlayerOption />
-          <WhitenoisePlayerOption />
-        </div>
-      </section>
-      <section>
-        <h5>Optional</h5>
+    <>
+      <h5>Background Noises</h5>
+      <div style={sectionStyles}>
+        <RainPlayerOption />
+        <WhitenoisePlayerOption />
+      </div>
+      <h5>Options</h5>
+      <div style={sectionStyles}>
         <LittleBellPlayerOption />
-      </section>
-    </div>
+      </div>
+    </>
   );
 }
