@@ -1,30 +1,47 @@
-import { useState } from "preact/hooks";
+import { ThemeProvider } from "@emotion/react";
+import { useEffect } from "preact/hooks";
 import "./app.css";
-import Controller from "./lib/components/Controller/Controller";
-import Ready from "./lib/components/Ready";
+import ActionBar from "./lib/components/ActionBar";
+import ArdioGroup from "./lib/components/Ardio/ArdioGroup";
+import PlaybackViewer from "./lib/components/PlaybackViewer";
+import AudioPlayer from "./lib/components/Player/Player";
 import { consentToPlayback } from "./lib/streams/observables";
+import { Theme, theme } from "./lib/theme";
 
 export function App() {
-  const [hasConsented, setHasConsented] = useState(false);
+  useEffect(() => {
+    function consentHandler() {
+      consentToPlayback();
+      window.removeEventListener("click", consentHandler);
+    }
+
+    window.addEventListener("click", consentHandler);
+
+    () => {
+      window.addEventListener("click", consentHandler);
+    };
+  }, []);
+
   return (
-    <main
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      {hasConsented ? (
-        <Controller />
-      ) : (
-        <Ready
-          onClick={() => {
-            setHasConsented(true);
-            consentToPlayback();
-          }}
-        />
-      )}
-    </main>
+    <ThemeProvider theme={theme}>
+      <main
+        css={(theme: Theme) => ({
+          display: "grid",
+          gridTemplateRows: "repeat(8)",
+          gridTemplateColumns: "auto",
+          gap: "16px",
+          padding: "16px",
+          color: theme.colors.text.primary,
+        })}
+      >
+        <h1 css={(theme: Theme) => ({ color: theme.colors.text.primary })}>
+          DEEP
+        </h1>
+        <AudioPlayer />
+        <PlaybackViewer />
+        <ActionBar />
+      </main>
+      <ArdioGroup />
+    </ThemeProvider>
   );
 }

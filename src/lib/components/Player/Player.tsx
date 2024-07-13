@@ -2,22 +2,29 @@ import LittleBellPlayerOption from "./Option/LittleBell";
 import RainPlayerOption from "./Option/Rain";
 import WhitenoisePlayerOption from "./Option/Whitenoise";
 
+const sectionStyles = {
+  display: "flex",
+  justifyContent: "flex-start",
+  "& form": {
+    marginRight: "16px",
+    "&:last-of-type": {
+      marginRight: "unset",
+    },
+  },
+};
+
 export default function AudioPlayer() {
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplate: "1fr 1fr / 1fr 1fr",
-        gap: "16px",
-      }}
-    >
-      <div>
+    <>
+      <h5>Background Noises</h5>
+      <div css={sectionStyles}>
         <RainPlayerOption />
         <WhitenoisePlayerOption />
       </div>
-      <div>
+      <h5>Options</h5>
+      <div css={sectionStyles}>
         <LittleBellPlayerOption />
       </div>
-    </div>
+    </>
   );
 }
