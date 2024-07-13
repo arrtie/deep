@@ -1,6 +1,7 @@
 import { useCallback } from "preact/hooks";
 import { PlaybackBase } from "../../orchestrate/orchestrate";
 import { addPlaybackOptionToQueue } from "../../streams/PlaybackQueue";
+import { Theme } from "../../theme";
 
 function makeSubmitHandler(src: string, background: boolean) {
   return function handleSubmit(e: Event) {
@@ -35,17 +36,19 @@ export default function PlayerOption({
   return (
     <form
       onSubmit={onHandleSubmit}
-      style={{
+      css={(theme: Theme) => ({
         display: "flex",
         flexDirection: "column",
-        backgroundColor: background ? "purple" : "rebeccapurple",
+        backgroundColor: background
+          ? theme.colors.main.primary
+          : theme.colors.main.secondary,
         padding: "16px",
         boxShadow: "black 6px 6px",
         minWidth: "fit-content",
-      }}
+      })}
     >
       <h5>{title}</h5>
-      <label style={{ display: background ? "none" : "initial" }}>
+      <label css={{ display: background ? "none" : "initial" }}>
         interval
         {/* plays this sound on an interval; in minutes  */}
         <input type="number" name="interval" />

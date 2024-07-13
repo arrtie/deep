@@ -1,3 +1,4 @@
+import { ThemeProvider } from "@emotion/react";
 import { useEffect } from "preact/hooks";
 import "./app.css";
 import ActionBar from "./lib/components/ActionBar";
@@ -5,6 +6,7 @@ import ArdioGroup from "./lib/components/Ardio/ArdioGroup";
 import PlaybackViewer from "./lib/components/PlaybackViewer";
 import AudioPlayer from "./lib/components/Player/Player";
 import { consentToPlayback } from "./lib/streams/observables";
+import { Theme, theme } from "./lib/theme";
 
 export function App() {
   useEffect(() => {
@@ -21,22 +23,25 @@ export function App() {
   }, []);
 
   return (
-    <>
+    <ThemeProvider theme={theme}>
       <main
-        style={{
+        css={(theme: Theme) => ({
           display: "grid",
           gridTemplateRows: "repeat(8)",
           gridTemplateColumns: "auto",
           gap: "16px",
           padding: "16px",
-        }}
+          color: theme.colors.text.primary,
+        })}
       >
-        <h1>DEEP</h1>
+        <h1 css={(theme: Theme) => ({ color: theme.colors.text.primary })}>
+          DEEP
+        </h1>
         <AudioPlayer />
         <PlaybackViewer />
         <ActionBar />
       </main>
       <ArdioGroup />
-    </>
+    </ThemeProvider>
   );
 }
