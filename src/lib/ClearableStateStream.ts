@@ -18,6 +18,7 @@ export default function ClearableStateStream<T>() {
       return innerFn(state);
     }, [])
   );
+
   return {
     add(a: T) {
       add$.next(a);

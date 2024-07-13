@@ -5,6 +5,7 @@ import ActionBar from "./lib/components/ActionBar";
 import ArdioGroup from "./lib/components/Ardio/ArdioGroup";
 import PlaybackViewer from "./lib/components/PlaybackViewer";
 import AudioPlayer from "./lib/components/Player/Player";
+import { AudioController } from "./lib/orchestrate/AudioController";
 import { consentToPlayback } from "./lib/streams/observables";
 import { Theme, theme } from "./lib/theme";
 
@@ -13,6 +14,11 @@ export function App() {
     function consentHandler() {
       consentToPlayback();
       window.removeEventListener("click", consentHandler);
+      const myAudio = AudioController("assets/rain.mp4");
+      setTimeout(() => {
+        console.log("myAudio.isInitialized: ", myAudio.isInitialized);
+        myAudio.play(0, 5);
+      }, 5000);
     }
 
     window.addEventListener("click", consentHandler);
