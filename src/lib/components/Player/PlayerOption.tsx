@@ -49,9 +49,9 @@ export default function PlayerOption({
     >
       <h5>{title}</h5>
       <label css={{ display: background ? "none" : "initial" }}>
-        interval
+        {`interval: `}
         {/* plays this sound on an interval; in minutes  */}
-        <input type="number" name="interval" />
+        <input type="number" name="interval" css={{ width: "2em" }} />
       </label>
       <button type="submit">Add</button>
     </form>

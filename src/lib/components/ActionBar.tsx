@@ -1,7 +1,16 @@
+import { css } from "@emotion/react";
+import emotionStyled from "@emotion/styled";
 import { useCallback, useState } from "preact/hooks";
 import usePlaybackOptions from "../soundOptons/usePlaybackOptions";
 import { clearPlaybackQueue } from "../streams/PlaybackQueue";
+import { theme } from "../theme";
 import useController from "./Controller/useController";
+const clearButtonColor = css({ backgroundColor: "black" });
+const ActionButton = emotionStyled.button({
+  width: "2em",
+  height: "2em",
+  color: theme.colors.common.white,
+});
 
 export default function ActionBar() {
   const userPlaybackOptions = usePlaybackOptions();
@@ -21,7 +30,7 @@ export default function ActionBar() {
 
   return (
     <section
-      style={{
+      css={{
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
@@ -31,21 +40,25 @@ export default function ActionBar() {
       {userPlaybackOptions.length === 0 ? (
         <div />
       ) : (
-        <button
-          style={{ display: hasOptions ? "inline-block" : "none" }}
+        <ActionButton
+          css={{
+            display: hasOptions ? "inline-block" : "none",
+            backgroundColor: "red",
+          }}
           type="button"
           onClick={() => clearPlaybackQueue()}
         >
-          CLEAR
-        </button>
+          X
+        </ActionButton>
       )}
-      <button
+      <ActionButton
         disabled={hasOptions === false}
+        css={clearButtonColor}
         type="button"
         onClick={() => (playState === "playing" ? pause() : play())}
       >
-        {playState === "playing" ? "PAUSE" : "PLAY"}
-      </button>
+        {playState === "playing" ? "||" : "|>"}
+      </ActionButton>
     </section>
   );
 }
