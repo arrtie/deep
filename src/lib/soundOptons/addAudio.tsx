@@ -45,10 +45,13 @@ export class AudioSourceNode {
   }
 
   play() {
-    this.audioContext.resume().then(() => {
-      this.source.mediaElement.play();
-      this.playStart = performance.now();
-    });
+    this.audioContext
+      .resume()
+      .then(() => {
+        this.source.mediaElement.play();
+        this.playStart = performance.now();
+      })
+      .catch((error) => console.error(error));
   }
 
   pause() {

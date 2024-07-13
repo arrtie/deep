@@ -42,7 +42,7 @@ export default function ActionBar() {
       <button
         disabled={hasOptions === false}
         type="button"
-        onClick={() => (playState === "playing" ? lC.play() : lC.pause())}
+        onClick={() => (playState === "playing" ? pause() : play())}
       >
         {playState === "playing" ? "PAUSE" : "PLAY"}
       </button>
