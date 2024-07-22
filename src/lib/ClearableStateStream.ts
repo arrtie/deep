@@ -1,4 +1,5 @@
 import { Subject, map, merge, scan } from "rxjs";
+import { subscriptionWrapper } from "../utils/subscriptionWrapper";
 
 type Adder = Subject<<T>(value: T) => T[]>;
 
@@ -27,5 +28,6 @@ export default function ClearableStateStream<T>() {
       clear$.next(undefined);
     },
     stateStream,
+    subscribe: subscriptionWrapper(stateStream),
   };
 }

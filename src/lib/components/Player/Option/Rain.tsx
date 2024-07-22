@@ -1,6 +1,6 @@
 import PlayerOption from "../PlayerOption";
 const rainOptions = {
-  interval: 0,
+  kind: "background",
   background: true,
   src: "assets/rain.mp4",
 };

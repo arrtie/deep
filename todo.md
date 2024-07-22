@@ -18,3 +18,5 @@ x less ugly styling
 x pause button
 x separate main from a controlled playback
 x play
+
+https://coolors.co/173753-1b4353-6daedb-2892d7-1d70a2

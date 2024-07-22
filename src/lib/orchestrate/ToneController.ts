@@ -1,7 +1,7 @@
 import { ArdioContext } from ".";
 import { ArdioContextType, BaseController } from "./types";
 
-function createTone(ArdioContext: ArdioContextType) {
+function createTone(ArdioContext: ArdioContextType, options?: ToneOptions) {
   type CreateTone = BaseController & {
     oscillator: OscillatorNode;
   };
@@ -16,6 +16,10 @@ function createTone(ArdioContext: ArdioContextType) {
       Tone.oscillator.start(start);
       if (stop != null) {
         Tone.stop(stop);
+        return;
+      }
+      if (options?.defaultStop != null) {
+        Tone.stop(options.defaultStop);
       }
     });
   };
@@ -24,15 +28,15 @@ function createTone(ArdioContext: ArdioContextType) {
     Tone.audioContext.suspend();
   };
 
-  Tone.stop = function (elapsedTime = 0) {
-    Tone.oscillator.stop(elapsedTime);
+  Tone.stop = function (elapsedTime: number) {
+    Tone.oscillator.stop(Tone.audioContext.currentTime + elapsedTime);
   };
 
   return Tone;
 }
 
 export type ToneController = ReturnType<typeof createTone>;
-
-export function ToneController() {
-  return createTone(ArdioContext);
+export type ToneOptions = Partial<{ defaultStop: number; volume: number }>;
+export function ToneController(options?: ToneOptions) {
+  return createTone(ArdioContext, options);
 }
