@@ -1,9 +1,14 @@
 import { useCallback } from "preact/hooks";
-import { PlaybackBase } from "../../orchestrate/orchestrate";
-import { addPlaybackOptionToQueue } from "../../streams/PlaybackQueue";
+import { OrchestrateConfigProp } from "../../orchestrate";
+import {
+  addAudioController,
+  addToneController,
+} from "../../orchestrate/controllerXorchestrate";
 import { Theme } from "../../theme";
 
-function makeSubmitHandler(src: string, background: boolean) {
+export type OptionKind = "background" | "interval";
+
+function makeSubmitHandler(src: string, kind: OptionKind) {
   return function handleSubmit(e: Event) {
     e.preventDefault();
     const intervalInput: HTMLInputElement | null = (
@@ -13,25 +18,29 @@ function makeSubmitHandler(src: string, background: boolean) {
       throw new Error("why no find interval input?");
     }
     const parsedInterval = parseInt(intervalInput.value);
-    const playbackBase: PlaybackBase = {
+    const controllerBase: Omit<OrchestrateConfigProp, "controller"> = {
       src,
       interval: Number.isNaN(parsedInterval) ? 0 : parsedInterval,
-      loop: background,
+      repeat: 0,
     };
-    addPlaybackOptionToQueue(playbackBase);
+    // pass the config to AudioController()
+    // add controller to configStream
+    kind == "background"
+      ? addAudioController(controllerBase)
+      : addToneController(controllerBase);
   };
 }
 
 export default function PlayerOption({
-  presets: { background, src },
+  presets: { kind, src },
   title,
 }: {
-  presets: { background: boolean; src: string; interval: number };
+  presets: { kind: OptionKind; src: string; interval: number };
   title: string;
 }) {
   const onHandleSubmit = useCallback(
-    (e: Event) => makeSubmitHandler(src, background)(e),
-    [src, background]
+    (e: Event) => makeSubmitHandler(src, kind)(e),
+    [src, kind]
   );
   return (
     <form
@@ -39,16 +48,17 @@ export default function PlayerOption({
       css={(theme: Theme) => ({
         display: "flex",
         flexDirection: "column",
-        backgroundColor: background
-          ? theme.colors.main.primary
-          : theme.colors.main.secondary,
+        backgroundColor:
+          kind === "background"
+            ? theme.colors.main.primary
+            : theme.colors.main.secondary,
         padding: "16px",
         boxShadow: "black 6px 6px",
         minWidth: "fit-content",
       })}
     >
       <h5>{title}</h5>
-      <label css={{ display: background ? "none" : "initial" }}>
+      <label css={{ display: kind === "background" ? "none" : "initial" }}>
         {`interval: `}
         {/* plays this sound on an interval; in minutes  */}
         <input type="number" name="interval" css={{ width: "2em" }} />

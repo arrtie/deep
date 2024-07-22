@@ -1,12 +1,7 @@
-// for each config in PlaybackQueueConfig
-// create an element to display:
-// it's name
-// if it's a background
-
 import { css } from "@emotion/react";
 import emotionStyled from "@emotion/styled";
 import { useMemo } from "preact/hooks";
-import { PlaybackBase } from "../orchestrate/orchestrate";
+import { OrchestrateConfigProp } from "../orchestrate";
 import usePlaybackOptions from "../soundOptons/usePlaybackOptions";
 
 const titleMap = new Map([
@@ -87,8 +82,8 @@ const OptionalSelection = emotionStyled.p(
 export default function PlaybackViewer() {
   const userPlaybackOptions = usePlaybackOptions();
   const [bg, opt] = useMemo(() => {
-    const _bg: PlaybackBase[] = [];
-    const _opt: PlaybackBase[] = [];
+    const _bg: OrchestrateConfigProp[] = [];
+    const _opt: OrchestrateConfigProp[] = [];
     userPlaybackOptions.forEach((option) => {
       if (option.interval === 0) {
         _bg.push(option);

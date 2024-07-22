@@ -1,17 +1,28 @@
 import { useEffect, useState } from "preact/hooks";
-import { PlaybackBase } from "../orchestrate/orchestrate";
-import { subscribeToPlaybackQueue } from "../streams/PlaybackQueue";
+import { Observer } from "rxjs";
+import {
+  OrchestrateConfigProp,
+  subscribeToOrchConfigStream,
+} from "../orchestrate";
 
-export default function usePlaybackOptions(): PlaybackBase[] {
+export default function usePlaybackOptions(): OrchestrateConfigProp[] {
   // subscribe to stream
   // set playbackOptionState on event
-  const [options, setOptions] = useState<PlaybackBase[]>([]);
+  const [options, setOptions] = useState<OrchestrateConfigProp[]>([]);
+
   useEffect(() => {
-    const subscription = subscribeToPlaybackQueue({
-      next(playbackBases: PlaybackBase[]) {
-        setOptions([...playbackBases]);
+    const observer: Observer<OrchestrateConfigProp[]> = {
+      next(configProps: OrchestrateConfigProp[]) {
+        setOptions([...configProps]);
       },
-    });
+      error(error) {
+        console.warn("whoops", error);
+      },
+      complete() {
+        console.warn("youll never see me");
+      },
+    };
+    const subscription = subscribeToOrchConfigStream(observer);
     return () => {
       subscription.unsubscribe();
     };
