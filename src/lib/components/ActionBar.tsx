@@ -1,10 +1,9 @@
 import { css } from "@emotion/react";
 import emotionStyled from "@emotion/styled";
 import { useCallback, useState } from "preact/hooks";
+import useActionBarController from "../Controllers/useActionBarController";
 import usePlaybackOptions from "../soundOptons/usePlaybackOptions";
-import { clearPlaybackQueue } from "../streams/PlaybackQueue";
 import { theme } from "../theme";
-import useController from "./Controller/useController";
 const clearButtonColor = css({ backgroundColor: "black" });
 const ActionButton = emotionStyled.button({
   width: "2em",
@@ -15,7 +14,7 @@ const ActionButton = emotionStyled.button({
 export default function ActionBar() {
   const userPlaybackOptions = usePlaybackOptions();
   const hasOptions = userPlaybackOptions.length > 0;
-  const lC = useController();
+  const lC = useActionBarController();
   const [playState, setPlayState] = useState("querying");
 
   const play = useCallback(() => {
@@ -46,7 +45,7 @@ export default function ActionBar() {
             backgroundColor: "red",
           }}
           type="button"
-          onClick={() => clearPlaybackQueue()}
+          onClick={() => console.log("coming soon")}
         >
           X
         </ActionButton>

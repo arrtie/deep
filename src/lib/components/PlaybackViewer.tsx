@@ -1,13 +1,16 @@
 import { css } from "@emotion/react";
 import emotionStyled from "@emotion/styled";
 import { useMemo } from "preact/hooks";
-import { OrchestrateConfigProp } from "../orchestrate";
+import { IntervalOnly, LoopOnly, SoundConfig } from "../ConfigurationOptions";
 import usePlaybackOptions from "../soundOptons/usePlaybackOptions";
 
 const titleMap = new Map([
   ["assets/whitenoise.mp4", "Whitenoise"],
   ["assets/little-bell.wav", "Bell"],
   ["assets/rain.mp4", "Rain"],
+  ["whitenoise", "Whitenoise"],
+  ["bell", "Bell"],
+  ["rain", "Rain"],
 ]);
 
 const selectionStyle = css`
@@ -82,33 +85,36 @@ const OptionalSelection = emotionStyled.p(
 export default function PlaybackViewer() {
   const userPlaybackOptions = usePlaybackOptions();
   const [bg, opt] = useMemo(() => {
-    const _bg: OrchestrateConfigProp[] = [];
-    const _opt: OrchestrateConfigProp[] = [];
-    userPlaybackOptions.forEach((option) => {
-      if (option.interval === 0) {
+    const _bg: LoopOnly[] = [];
+    const _opt: IntervalOnly[] = [];
+    userPlaybackOptions.forEach((option: SoundConfig) => {
+      if ("delay" in option) {
+        _opt.push(option);
+        return;
+      }
+      if ("loop" in option) {
         _bg.push(option);
         return;
       }
-      _opt.push(option);
     });
     return [_bg, _opt];
   }, [userPlaybackOptions]);
-  console.log("opt", opt);
+  console.log("opt", opt, "bg", bg);
 
   return (
     <>
       <div css={row}>
         <SelectionHeader>BG:</SelectionHeader>
         {bg.map((option) => (
-          <BackgroundSelection>{titleMap.get(option.src)}</BackgroundSelection>
+          <BackgroundSelection>{titleMap.get(option.id)}</BackgroundSelection>
         ))}
       </div>
 
       <div css={row}>
         <SelectionHeader>OPT:</SelectionHeader>
         {opt.map((option) => (
-          <OptionalSelection count={option.interval}>
-            {titleMap.get(option.src)}
+          <OptionalSelection count={option.repetitions}>
+            {titleMap.get(option.id)}
           </OptionalSelection>
         ))}
       </div>
