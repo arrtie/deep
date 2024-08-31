@@ -1,14 +1,14 @@
 import { useCallback } from "preact/hooks";
-import { OrchestrateConfigProp } from "../../orchestrate";
 import {
-  addAudioController,
-  addToneController,
-} from "../../orchestrate/controllerXorchestrate";
+  SoundConfig,
+  submitUserConfigOption,
+} from "../../ConfigurationOptions";
+import { SoundId } from "../../SoundManager";
 import { Theme } from "../../theme";
 
 export type OptionKind = "background" | "interval";
 
-function makeSubmitHandler(src: string, kind: OptionKind) {
+function makeSubmitHandler(id: SoundId, kind: OptionKind) {
   return function handleSubmit(e: Event) {
     e.preventDefault();
     const intervalInput: HTMLInputElement | null = (
@@ -18,29 +18,26 @@ function makeSubmitHandler(src: string, kind: OptionKind) {
       throw new Error("why no find interval input?");
     }
     const parsedInterval = parseInt(intervalInput.value);
-    const controllerBase: Omit<OrchestrateConfigProp, "controller"> = {
-      src,
-      interval: Number.isNaN(parsedInterval) ? 0 : parsedInterval,
-      repeat: 0,
+    const soundConfig: SoundConfig = {
+      id,
+      delay: Number.isNaN(parsedInterval) ? 0 : parsedInterval,
+      repetitions: 1,
     };
-    // pass the config to AudioController()
-    // add controller to configStream
-    kind == "background"
-      ? addAudioController(controllerBase)
-      : addToneController(controllerBase);
+    console.log("submitting userConfigOption", kind);
+    submitUserConfigOption(soundConfig, kind);
   };
 }
 
 export default function PlayerOption({
-  presets: { kind, src },
+  presets: { kind, id },
   title,
 }: {
-  presets: { kind: OptionKind; src: string; interval: number };
+  presets: { kind: OptionKind; id: SoundId; interval: number };
   title: string;
 }) {
   const onHandleSubmit = useCallback(
-    (e: Event) => makeSubmitHandler(src, kind)(e),
-    [src, kind]
+    (e: Event) => makeSubmitHandler(id, kind)(e),
+    [id, kind]
   );
   return (
     <form

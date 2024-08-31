@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
-import { composerStream } from "../../orchestrate";
-import { Composer, fakeController } from "../../orchestrate/orchestrate";
+import { PlayPauseController, fakeController } from ".";
+import { ActionBarController, actionBarControllerStream } from "./ActionBar";
 
 // returns a controller on each composerStream emission ( your audio elements are loaded!)
 export default function useController({
@@ -10,13 +10,14 @@ export default function useController({
       next?: () => void;
     }
   | undefined = {}) {
-  const [controller, setController] = useState<Composer>(fakeController);
+  const [controller, setController] =
+    useState<PlayPauseController>(fakeController);
 
   useEffect(() => {
-    const sub = composerStream.subscribe({
-      next: (composer: Composer) => {
-        console.log("NEXTED!", composer);
-        setController(composer);
+    const sub = actionBarControllerStream.subscribe({
+      next: (actionBarController: ActionBarController) => {
+        console.log("NEXTED!", actionBarController);
+        setController(actionBarController);
         if (nextCallback != null) {
           nextCallback();
         }

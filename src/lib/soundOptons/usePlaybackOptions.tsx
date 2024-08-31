@@ -1,28 +1,27 @@
 import { useEffect, useState } from "preact/hooks";
-import { Observer } from "rxjs";
-import {
-  OrchestrateConfigProp,
-  subscribeToOrchConfigStream,
-} from "../orchestrate";
+import { Observer, scan } from "rxjs";
+import { SoundConfig } from "../ConfigurationOptions";
+import { bgConfigStream } from "../ConfigurationOptions/streams";
 
-export default function usePlaybackOptions(): OrchestrateConfigProp[] {
+export default function usePlaybackOptions(): SoundConfig[] {
   // subscribe to stream
   // set playbackOptionState on event
-  const [options, setOptions] = useState<OrchestrateConfigProp[]>([]);
-
+  const [options, setOptions] = useState<SoundConfig[]>([]);
+  useEffect(() => console.log("options: ", options), [options]);
   useEffect(() => {
-    const observer: Observer<OrchestrateConfigProp[]> = {
-      next(configProps: OrchestrateConfigProp[]) {
+    const observer: Partial<Observer<SoundConfig[]>> = {
+      next(configProps: SoundConfig[]) {
         setOptions([...configProps]);
       },
-      error(error) {
-        console.warn("whoops", error);
-      },
-      complete() {
-        console.warn("youll never see me");
-      },
     };
-    const subscription = subscribeToOrchConfigStream(observer);
+    const subscription = bgConfigStream
+      .pipe(
+        scan<SoundConfig, SoundConfig[]>((acc, current) => {
+          acc.push(current);
+          return acc;
+        }, [])
+      )
+      .subscribe(observer);
     return () => {
       subscription.unsubscribe();
     };

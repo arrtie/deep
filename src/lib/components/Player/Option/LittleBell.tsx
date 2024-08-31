@@ -1,7 +1,7 @@
 import PlayerOption from "../PlayerOption";
 const presets = {
   kind: "interval",
-  src: "interval-default",
+  id: "bell",
   interval: 0,
 };
 export default function LittleBellPlayerOption() {

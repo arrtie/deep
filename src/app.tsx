@@ -1,24 +1,17 @@
 import { ThemeProvider } from "@emotion/react";
 import { useEffect } from "preact/hooks";
 import "./app.css";
+import { subscribeToPlayStream } from "./lib/Controllers/streams";
 import ActionBar from "./lib/components/ActionBar";
-import ArdioGroup from "./lib/components/Ardio/ArdioGroup";
 import PlaybackViewer from "./lib/components/PlaybackViewer";
 import AudioPlayer from "./lib/components/Player/Player";
-import { consentToPlayback } from "./lib/streams/observables";
 import { Theme, theme } from "./lib/theme";
 
 export function App() {
   useEffect(() => {
-    function consentHandler() {
-      consentToPlayback();
-      window.removeEventListener("click", consentHandler);
-    }
-
-    window.addEventListener("click", consentHandler);
-
-    () => {
-      window.addEventListener("click", consentHandler);
+    const subscription = subscribeToPlayStream();
+    return () => {
+      subscription.unsubscribe();
     };
   }, []);
 
@@ -41,7 +34,6 @@ export function App() {
         <PlaybackViewer />
         <ActionBar />
       </main>
-      <ArdioGroup />
     </ThemeProvider>
   );
 }
