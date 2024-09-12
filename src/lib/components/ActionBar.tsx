@@ -1,8 +1,8 @@
 import { css } from "@emotion/react";
 import emotionStyled from "@emotion/styled";
 import { useCallback, useState } from "preact/hooks";
-import useActionBarController from "../Controllers/useActionBarController";
-import usePlaybackOptions from "../soundOptons/usePlaybackOptions";
+import useUserSelectedConfigs from "../ConfigurationOptions/useUserSelectedConfigs";
+import useActionBarController from "../Controllers/ActionBar";
 import { theme } from "../theme";
 const clearButtonColor = css({ backgroundColor: "black" });
 const ActionButton = emotionStyled.button({
@@ -12,10 +12,11 @@ const ActionButton = emotionStyled.button({
 });
 
 export default function ActionBar() {
-  const userPlaybackOptions = usePlaybackOptions();
-  const hasOptions = userPlaybackOptions.length > 0;
+  const userPlaybackOptions = useUserSelectedConfigs();
   const lC = useActionBarController();
   const [playState, setPlayState] = useState("querying");
+  const hasOptions =
+    userPlaybackOptions.bg.length > 0 || userPlaybackOptions.int.length > 0;
 
   const play = useCallback(() => {
     lC.play();
@@ -36,7 +37,7 @@ export default function ActionBar() {
         flexDirection: "row",
       }}
     >
-      {userPlaybackOptions.length === 0 ? (
+      {!hasOptions ? (
         <div />
       ) : (
         <ActionButton

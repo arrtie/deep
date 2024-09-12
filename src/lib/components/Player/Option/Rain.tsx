@@ -1,4 +1,4 @@
-import PlayerOption from "../PlayerOption";
+import PlayerOption from "../PlayerOptionForm";
 const rainOptions = {
   kind: "background",
   background: true,

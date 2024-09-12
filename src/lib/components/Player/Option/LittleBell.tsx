@@ -1,4 +1,4 @@
-import PlayerOption from "../PlayerOption";
+import PlayerOption from "../PlayerOptionForm";
 const presets = {
   kind: "interval",
   id: "bell",

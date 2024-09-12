@@ -1,23 +1,37 @@
-import { SoundId } from "../SoundManager";
-import { OptionKind } from "../components/Player/PlayerOption";
-import { addBGConfig } from "./streams";
-
-export type SoundConfig =
-  | SoundOptions<LoopOptions>
-  | SoundOptions<IntervalOptions>;
-
-type LoopOptions = { loop: true };
-type IntervalOptions = { delay: number; repetitions: number };
-type SoundOptions<T> = { id: SoundId } & T;
-export type LoopOnly = SoundOptions<LoopOptions>;
-export type IntervalOnly = SoundOptions<IntervalOptions>;
+import { Subject, map, scan, share } from "rxjs";
+import { ConfigAggregator, OptionKind, SoundConfig } from "../../types";
+import { getKindById } from "../SoundManager";
 
 export function submitUserConfigOption(config: SoundConfig, kind: OptionKind) {
-  console.log("config option: ", kind);
   if (kind === "background") {
-    // add to bbConfigAccum
-    addBGConfig(config);
+    submitConfig({ ...config, loop: true });
     return;
   }
-  // add to interlvalConfigAccum
+  submitConfig(config);
 }
+
+function addConfigHandler(config: SoundConfig) {
+  return function (state: ConfigAggregator): ConfigAggregator {
+    if (getKindById(config.id) === "background") {
+      state.bg = [...state.bg, config];
+    } else {
+      state.int = [...state.int, config];
+    }
+    return state;
+  };
+}
+const configSubject = new Subject<SoundConfig>();
+
+export function submitConfig(config: SoundConfig) {
+  configSubject.next(config);
+}
+const addConfigHandlerStream = configSubject.pipe(map(addConfigHandler));
+const configHandlerStream = addConfigHandlerStream;
+
+export const configAggregatorStream = configHandlerStream.pipe(
+  scan<(state: ConfigAggregator) => ConfigAggregator, ConfigAggregator>(
+    (acc, handler) => handler(acc),
+    { bg: [], int: [] }
+  ),
+  share()
+);

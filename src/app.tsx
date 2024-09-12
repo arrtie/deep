@@ -1,7 +1,7 @@
 import { ThemeProvider } from "@emotion/react";
 import { useEffect } from "preact/hooks";
 import "./app.css";
-import { subscribeToPlayStream } from "./lib/Controllers/streams";
+import { subscribeToPlayStream } from "./lib/Controllers";
 import ActionBar from "./lib/components/ActionBar";
 import PlaybackViewer from "./lib/components/PlaybackViewer";
 import AudioPlayer from "./lib/components/Player/Player";

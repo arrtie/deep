@@ -1,6 +1,13 @@
-import { map, scan, share } from "rxjs";
-import { SoundConfig } from "../ConfigurationOptions";
-import { Sound, bgConfigSubject } from "../ConfigurationOptions/streams";
+import {
+  Subject,
+  from,
+  interval as intervalRx,
+  map,
+  merge,
+  switchMap,
+  take,
+} from "rxjs";
+import { ConfigAggregator, Sound, SoundConfig } from "../../types";
 import { soundManager } from "../SoundManager";
 
 export const fakeController = {
@@ -14,29 +21,9 @@ export const fakeController = {
 
 export type PlayPauseController = typeof fakeController;
 
-export const bgControllerAccumulator = bgConfigSubject.pipe(
-  map<SoundConfig, PlayPauseController>((bgConfig) => {
-    return convertConfigToController(bgConfig);
-  }),
-  scan<PlayPauseController, PlayPauseController[]>(
-    (acc, bgController): PlayPauseController[] => {
-      acc.push(bgController);
-      return acc;
-    },
-    []
-  ),
-  share()
-);
-
-export type ObserverLike<T, K = void> = {
-  next: (value: T) => K;
-};
-
 function makeSoundPlayable(sound: Sound) {
-  debugger;
   return {
     play() {
-      debugger;
       sound.play();
     },
     pause() {
@@ -50,4 +37,39 @@ function convertConfigToController(config: SoundConfig): PlayPauseController {
   return makeSoundPlayable(sound);
 }
 
-export function subscribeToPPControllerStream() {}
+function createIntervalStream(intConfig: SoundConfig) {
+  const { interval, delay, repetitions } = intConfig;
+  if (interval == null || delay == null || repetitions == null) {
+    throw new Error("wrong sound config; should be interval");
+  }
+  const intervalStream = intervalRx(interval * 1000).pipe(
+    // startWith(convertConfigToController(intConfig)),
+    map(() => convertConfigToController(intConfig)),
+    take(repetitions)
+  );
+  return intervalStream;
+}
+
+// stream for Controllers.
+const controllersSubject = new Subject<ConfigAggregator>();
+
+export function releaseControllersToPlayStream(configAgg: ConfigAggregator) {
+  return controllersSubject.next(configAgg);
+}
+const controllerStream = controllersSubject.pipe(
+  switchMap((configAgg) => {
+    const bgControllers = from(configAgg.bg.map(convertConfigToController));
+    const intControllers = configAgg.int.map(createIntervalStream);
+    return merge([bgControllers, ...intControllers]);
+  })
+);
+const playStream = controllerStream.pipe(switchMap((newStream) => newStream));
+
+export function subscribeToPlayStream() {
+  return playStream.subscribe({
+    next: (value: PlayPauseController) => {
+      console.log("Plaaystream: ", value);
+      value.play();
+    },
+  });
+}

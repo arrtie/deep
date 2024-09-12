@@ -1,8 +1,6 @@
 import { Subject, map, merge, scan } from "rxjs";
 import { subscriptionWrapper } from "../utils/subscriptionWrapper";
 
-type Adder = Subject<<T>(value: T) => T[]>;
-
 export default function ClearableStateStream<T>() {
   const add$ = new Subject<T>();
   const clear$ = new Subject<T | undefined>();

@@ -1,8 +1,7 @@
 import { css } from "@emotion/react";
 import emotionStyled from "@emotion/styled";
-import { useMemo } from "preact/hooks";
-import { IntervalOnly, LoopOnly, SoundConfig } from "../ConfigurationOptions";
-import usePlaybackOptions from "../soundOptons/usePlaybackOptions";
+import { useEffect } from "preact/hooks";
+import useUserSelectedConfigs from "../ConfigurationOptions/useUserSelectedConfigs";
 
 const titleMap = new Map([
   ["assets/whitenoise.mp4", "Whitenoise"],
@@ -29,20 +28,6 @@ const backgroundSelectionStyle = css([
   selectionStyle,
   { backgroundColor: "hotpink" },
 ]);
-
-// const OptionalSelection = {
-//   backgroundColor: "blue",
-//   position: "relative",
-//   "&:after": {
-//     content: '"x"',
-//     minWidth: "1em",
-//     height: "1em",
-//     backgroundColor: "red",
-//     position: "absolute",
-//     top: 0,
-//     right: 0,
-//   },
-// };
 
 const row = css({
   display: "flex",
@@ -83,36 +68,27 @@ const OptionalSelection = emotionStyled.p(
 );
 
 export default function PlaybackViewer() {
-  const userPlaybackOptions = usePlaybackOptions();
-  const [bg, opt] = useMemo(() => {
-    const _bg: LoopOnly[] = [];
-    const _opt: IntervalOnly[] = [];
-    userPlaybackOptions.forEach((option: SoundConfig) => {
-      if ("delay" in option) {
-        _opt.push(option);
-        return;
-      }
-      if ("loop" in option) {
-        _bg.push(option);
-        return;
-      }
-    });
-    return [_bg, _opt];
-  }, [userPlaybackOptions]);
-  console.log("opt", opt, "bg", bg);
+  const options = useUserSelectedConfigs();
+  const { bg, int } = options;
+  console.log("playbackViewer: int", int, "bg", bg);
+  useEffect(() => {
+    console.log("every render");
+  });
 
   return (
     <>
       <div css={row}>
         <SelectionHeader>BG:</SelectionHeader>
         {bg.map((option) => (
-          <BackgroundSelection>{titleMap.get(option.id)}</BackgroundSelection>
+          <BackgroundSelection key={option.id}>
+            {titleMap.get(option.id)}
+          </BackgroundSelection>
         ))}
       </div>
 
       <div css={row}>
         <SelectionHeader>OPT:</SelectionHeader>
-        {opt.map((option) => (
+        {int.map((option) => (
           <OptionalSelection count={option.repetitions}>
             {titleMap.get(option.id)}
           </OptionalSelection>

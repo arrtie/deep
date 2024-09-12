@@ -4,13 +4,17 @@ export const soundMap = new Map<SoundId, Howl>();
 export type SoundId = keyof typeof idToSrc;
 
 export const idToSrc = {
-  rain: { src: "assets/rain.mp4", loop: true },
-  whitenoise: { src: "assets/whitenoise.mp4", loop: true },
-  bell: { src: "assets/little-bell.wav", loop: false },
+  rain: { src: "assets/rain.mp4", loop: true, kind: "background" },
+  whitenoise: { src: "assets/whitenoise.mp4", loop: true, kind: "background" },
+  bell: { src: "assets/little-bell.wav", loop: false, kind: "interval" },
 };
 
 export function getSoundOptionsFromId(id: SoundId) {
   return idToSrc[id];
+}
+
+export function getKindById(soundId: SoundId) {
+  return getSoundOptionsFromId(soundId).kind;
 }
 
 export const soundManager = {
