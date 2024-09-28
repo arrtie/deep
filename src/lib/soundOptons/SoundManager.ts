@@ -1,5 +1,5 @@
 import { Howl } from "howler";
-import { makeSound } from "./soundOptons/soundAdapter";
+import { makeSound } from "./soundAdapter";
 export const soundMap = new Map<SoundId, Howl>();
 export type SoundId = keyof typeof idToSrc;
 

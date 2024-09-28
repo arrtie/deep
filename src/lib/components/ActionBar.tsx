@@ -13,7 +13,7 @@ const ActionButton = emotionStyled.button({
 
 export default function ActionBar() {
   const userPlaybackOptions = usePlaybackOptions();
-  const hasOptions = userPlaybackOptions.length > 0;
+  const hasOptions = userPlaybackOptions != null;
   const lC = useActionBarController();
   const [playState, setPlayState] = useState("querying");
 
@@ -36,7 +36,9 @@ export default function ActionBar() {
         flexDirection: "row",
       }}
     >
-      {userPlaybackOptions.length === 0 ? (
+      {hasOptions &&
+      (userPlaybackOptions.bgs.length > 0 ||
+        userPlaybackOptions.intervals.length > 0) ? (
         <div />
       ) : (
         <ActionButton
