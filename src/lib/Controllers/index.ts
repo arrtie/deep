@@ -1,7 +1,7 @@
 import { map, scan, share } from "rxjs";
 import { SoundConfig } from "../ConfigurationOptions";
 import { Sound, bgConfigSubject } from "../ConfigurationOptions/streams";
-import { soundManager } from "../SoundManager";
+import { soundManager } from "../soundOptons/SoundManager";
 
 export const fakeController = {
   play() {
@@ -33,10 +33,8 @@ export type ObserverLike<T, K = void> = {
 };
 
 function makeSoundPlayable(sound: Sound) {
-  debugger;
   return {
     play() {
-      debugger;
       sound.play();
     },
     pause() {

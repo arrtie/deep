@@ -3,7 +3,7 @@ import {
   SoundConfig,
   submitUserConfigOption,
 } from "../../ConfigurationOptions";
-import { SoundId } from "../../SoundManager";
+import { SoundId } from "../../soundOptons/SoundManager";
 import { Theme } from "../../theme";
 
 export type OptionKind = "background" | "interval";
@@ -11,17 +11,25 @@ export type OptionKind = "background" | "interval";
 function makeSubmitHandler(id: SoundId, kind: OptionKind) {
   return function handleSubmit(e: Event) {
     e.preventDefault();
-    const intervalInput: HTMLInputElement | null = (
-      e.currentTarget as HTMLFormElement
-    ).querySelector("input[name='interval']");
-    if (intervalInput == null) {
+    const inputs: HTMLInputElement[] | null = Array.from(
+      (e.currentTarget as HTMLFormElement).querySelectorAll("input")
+    );
+    if (inputs == null) {
       throw new Error("why no find interval input?");
     }
-    const parsedInterval = parseInt(intervalInput.value);
+
+    const results: Map<string, number> = new Map(
+      inputs.map((input) => {
+        return [input.name, parseInt(input.value)];
+      })
+    );
+    const delay = results.get("offset") ?? 0;
+    const repetitions = results.get("repetitions") ?? 0;
+
     const soundConfig: SoundConfig = {
       id,
-      delay: Number.isNaN(parsedInterval) ? 0 : parsedInterval,
-      repetitions: 1,
+      delay,
+      repetitions,
     };
     console.log("submitting userConfigOption", kind);
     submitUserConfigOption(soundConfig, kind);
@@ -55,11 +63,21 @@ export default function PlayerOption({
       })}
     >
       <h5>{title}</h5>
-      <label css={{ display: kind === "background" ? "none" : "initial" }}>
-        {`interval: `}
-        {/* plays this sound on an interval; in minutes  */}
-        <input type="number" name="interval" css={{ width: "2em" }} />
-      </label>
+
+      {kind === "background" ? null : (
+        <>
+          <label>
+            {`offset: `}
+            {/* plays this sound on an offset; in minutes  */}
+            <input type="number" name="offset" css={{ width: "2em" }} />
+          </label>
+          <label>
+            {`repetitions: `}
+            {/* plays this sound on an repetitions; in minutes  */}
+            <input type="number" name="repetitions" css={{ width: "2em" }} />
+          </label>
+        </>
+      )}
       <button type="submit">Add</button>
     </form>
   );

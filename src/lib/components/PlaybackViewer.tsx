@@ -1,7 +1,7 @@
 import { css } from "@emotion/react";
 import emotionStyled from "@emotion/styled";
 import { useMemo } from "preact/hooks";
-import { IntervalOnly, LoopOnly, SoundConfig } from "../ConfigurationOptions";
+import { SoundConfig } from "../ConfigurationOptions";
 import usePlaybackOptions from "../soundOptons/usePlaybackOptions";
 
 const titleMap = new Map([
@@ -85,21 +85,15 @@ const OptionalSelection = emotionStyled.p(
 export default function PlaybackViewer() {
   const userPlaybackOptions = usePlaybackOptions();
   const [bg, opt] = useMemo(() => {
-    const _bg: LoopOnly[] = [];
-    const _opt: IntervalOnly[] = [];
-    userPlaybackOptions.forEach((option: SoundConfig) => {
-      if ("delay" in option) {
-        _opt.push(option);
-        return;
-      }
-      if ("loop" in option) {
-        _bg.push(option);
-        return;
-      }
-    });
+    let _bg: SoundConfig[] = [];
+    let _opt: SoundConfig[] = [];
+    if (userPlaybackOptions != null) {
+      _bg = userPlaybackOptions.bgs.map((option: SoundConfig) => option);
+      _opt = userPlaybackOptions.intervals.map((option: SoundConfig) => option);
+    }
     return [_bg, _opt];
   }, [userPlaybackOptions]);
-  console.log("opt", opt, "bg", bg);
+  console.log("PlaybackViewer: opt", opt, "bg", bg);
 
   return (
     <>

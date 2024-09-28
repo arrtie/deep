@@ -15,7 +15,6 @@ const playStream = bgControllerSubject.pipe(mergeWith(intervalControllerSteam));
 export function emitBGControllersToPlayStream(
   bgControllers: PlayPauseController[]
 ) {
-  debugger;
   bgControllers.forEach((bgController) => {
     bgControllerSubject.next(bgController);
   });

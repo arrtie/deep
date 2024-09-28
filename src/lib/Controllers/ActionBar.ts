@@ -1,6 +1,7 @@
 import { map } from "rxjs";
-import { ObserverLike, bgControllerAccumulator } from ".";
-import { emitBGControllersToPlayStream } from "./streams";
+import { ObserverLike } from ".";
+import { userSelectionStream } from "../ConfigurationOptions/UserSelection";
+import { Playback } from "../Playback/Playback";
 /**
  * @method play triggers emit from bgControllers and intrvControllers
  */
@@ -12,18 +13,10 @@ export type ActionBarController = {
 /**
  * emits an ActionBarController
  */
-export const actionBarControllerStream = bgControllerAccumulator.pipe(
-  map((bgControllers) => {
-    console.log("bgControllers: ", bgControllers);
-    return {
-      pause() {
-        console.log("actionbarpause");
-      },
-      play() {
-        console.log("actionbarplay");
-        emitBGControllersToPlayStream(bgControllers);
-      },
-    };
+export const actionBarControllerStream = userSelectionStream.pipe(
+  map((userSelectionConfigs) => {
+    console.log("userSelectionConfigs: ", userSelectionConfigs);
+    return new Playback(userSelectionConfigs);
   })
 );
 
