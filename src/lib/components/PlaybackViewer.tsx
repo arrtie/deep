@@ -108,7 +108,10 @@ export default function PlaybackViewer() {
         <SelectionHeader>OPT:</SelectionHeader>
         {opt.map((option) => (
           <OptionalSelection count={option.repetitions}>
-            {titleMap.get(option.id)}
+            <span css={{ display: "block", fontWeight: 500 }}>
+              {titleMap.get(option.id)}
+            </span>
+            <span>delay: {option.delay} mins.</span>
           </OptionalSelection>
         ))}
       </div>

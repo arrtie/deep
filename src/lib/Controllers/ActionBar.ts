@@ -1,4 +1,4 @@
-import { map } from "rxjs";
+import { map, scan } from "rxjs";
 import { ObserverLike } from ".";
 import { userSelectionStream } from "../ConfigurationOptions/UserSelection";
 import { Playback } from "../Playback/Playback";
@@ -10,6 +10,10 @@ export type ActionBarController = {
   pause: () => void;
 };
 
+interface PreviousCurrent {
+  prev: Playback | null;
+  current: Playback | null;
+}
 /**
  * emits an ActionBarController
  */
@@ -17,6 +21,21 @@ export const actionBarControllerStream = userSelectionStream.pipe(
   map((userSelectionConfigs) => {
     console.log("userSelectionConfigs: ", userSelectionConfigs);
     return new Playback(userSelectionConfigs);
+  }),
+  scan(
+    (acc: PreviousCurrent, newVal: Playback) => {
+      if (acc.prev != null) {
+        acc.prev.destroy();
+      }
+      return { current: newVal, prev: acc.current };
+    },
+    { prev: null, current: null }
+  ),
+  map((prevAndCurr: PreviousCurrent) => {
+    if (prevAndCurr.current == null) {
+      throw new Error("missing current?");
+    }
+    return prevAndCurr.current;
   })
 );
 

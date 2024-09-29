@@ -23,7 +23,7 @@ export const soundManager = {
   },
   addSound(id: SoundId) {
     const options = getSoundOptionsFromId(id);
-    const newSound = makeSound(options.src);
+    const newSound = makeSound(options);
     soundMap.set(id, newSound);
     return newSound;
   },
