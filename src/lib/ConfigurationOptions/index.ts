@@ -1,5 +1,5 @@
 import { OptionKind } from "../components/Player/PlayerOption";
-import { SoundId } from "../soundOptons/SoundManager";
+import { SoundId } from "../soundOptons";
 import { UserSelection } from "./UserSelection";
 
 // export type SoundConfig =

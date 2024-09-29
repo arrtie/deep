@@ -1,10 +1,11 @@
 import { SoundConfig } from "../ConfigurationOptions";
 import { Sound } from "../ConfigurationOptions/streams";
 import { UserSelectionConfigs } from "../ConfigurationOptions/UserSelection";
-import { SoundId, soundManager } from "../soundOptons/SoundManager";
+import { SoundId } from "../soundOptons";
+import { soundManager } from "../soundOptons/SoundManager";
 
 function msToMin(time: number) {
-  return time * 1000 * 60;
+  return time * 1000; // * 60;
 }
 
 interface PlaybackProperties extends SoundConfig {

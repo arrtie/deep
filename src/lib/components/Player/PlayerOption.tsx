@@ -3,7 +3,7 @@ import {
   SoundConfig,
   submitUserConfigOption,
 } from "../../ConfigurationOptions";
-import { SoundId } from "../../soundOptons/SoundManager";
+import { SoundId } from "../../soundOptons";
 import { Theme } from "../../theme";
 
 export type OptionKind = "background" | "interval";

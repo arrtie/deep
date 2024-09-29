@@ -9,7 +9,7 @@ import {
 } from "rxjs";
 import { IntervalOnly, SoundConfig } from ".";
 import { makeAddTo } from "../../utils/makeAddTo";
-import { SoundId } from "../soundOptons/SoundManager";
+import { SoundId } from "../soundOptons";
 export type Sound = Howl;
 export const bgConfigSubject = new Subject<SoundConfig>();
 

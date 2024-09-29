@@ -2,16 +2,8 @@ import { css } from "@emotion/react";
 import emotionStyled from "@emotion/styled";
 import { useMemo } from "preact/hooks";
 import { SoundConfig } from "../ConfigurationOptions";
+import { titleMap } from "../soundOptons";
 import usePlaybackOptions from "../soundOptons/usePlaybackOptions";
-
-const titleMap = new Map([
-  ["assets/whitenoise.mp4", "Whitenoise"],
-  ["assets/little-bell.wav", "Bell"],
-  ["assets/rain.mp4", "Rain"],
-  ["whitenoise", "Whitenoise"],
-  ["bell", "Bell"],
-  ["rain", "Rain"],
-]);
 
 const selectionStyle = css`
   width: fit-content;
