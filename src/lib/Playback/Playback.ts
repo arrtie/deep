@@ -4,7 +4,7 @@ import { UserSelectionConfigs } from "../ConfigurationOptions/UserSelection";
 import { SoundId } from "../soundOptons";
 import { soundManager } from "../soundOptons/SoundManager";
 
-function msToMin(time: number) {
+function minToMs(time: number) {
   return time * 1000 * 60;
 }
 
@@ -21,19 +21,18 @@ function newTimeout(intervals: Map<number, PlaybackProperties>, uuid: number) {
     throw new Error("why no playback props?");
   }
   const { offset, delay, repetitionsRemaining, sound } = playbackProps;
-  const timeAmount = offset > 0 ? offset : msToMin(delay);
+  const timeAmount = offset > 0 ? offset : minToMs(delay);
   const timeoutId = setTimeout(() => {
     sound.play();
     const newRepetitionsRemaining = repetitionsRemaining - 1;
-    intervals.set(uuid, {
-      ...playbackProps,
-      repetitionsRemaining: newRepetitionsRemaining,
-      timeoutId,
-    });
+    playbackProps.repetitionsRemaining = newRepetitionsRemaining;
     if (newRepetitionsRemaining > 0) {
       newTimeout(intervals, uuid);
     }
   }, timeAmount);
+
+  playbackProps.timeoutId = timeoutId;
+  playbackProps.offset = 0;
 }
 
 export class Playback {
@@ -74,19 +73,16 @@ export class Playback {
   }
 
   pauseIntevals() {
-    this.intervals.forEach(([id, playbackProps]) => {
-      const { sound, repetitionsRemaining } = playbackProps;
+    this.intervals.forEach(([, playbackProps]) => {
+      const { sound, repetitionsRemaining, timeoutId, delay } = playbackProps;
       sound.pause();
+      clearTimeout(timeoutId);
       if (repetitionsRemaining === 0) {
         return;
       }
-      const currentInterval = this.intervalMap.get(id);
-      if (currentInterval == null) {
-        throw new Error("how?");
-      }
-      currentInterval.sound.pause();
-      clearTimeout(currentInterval.timeoutId);
-      currentInterval.offset = this.playEnd - this.playStart;
+      const delayInMin = minToMs(delay);
+      const remainder = (this.playEnd - this.playStart) % delayInMin;
+      playbackProps.offset = delayInMin * (1 - remainder);
     });
   }
 
