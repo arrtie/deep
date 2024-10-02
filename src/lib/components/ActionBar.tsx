@@ -1,6 +1,6 @@
 import { css } from "@emotion/react";
 import emotionStyled from "@emotion/styled";
-import { useCallback, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 import useActionBarController from "../Controllers/useActionBarController";
 import usePlaybackOptions from "../soundOptons/usePlaybackOptions";
 import { theme } from "../theme";
@@ -16,6 +16,18 @@ export default function ActionBar() {
   const hasOptions = userPlaybackOptions != null;
   const lC = useActionBarController();
   const [playState, setPlayState] = useState("querying");
+
+  useEffect(() => {
+    const unSub = lC.subscribe({
+      next: (val) => {
+        console.log("current: ", val.current);
+        console.log("paused: ", val.paused);
+      },
+    });
+    return () => {
+      unSub();
+    };
+  }, [lC]);
 
   const play = useCallback(() => {
     lC.play();

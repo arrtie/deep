@@ -1,7 +1,4 @@
-import { map, scan, share } from "rxjs";
-import { SoundConfig } from "../ConfigurationOptions";
-import { Sound, bgConfigSubject } from "../ConfigurationOptions/streams";
-import { soundManager } from "../soundOptons/SoundManager";
+import { StopwatchProps } from "../Playback/Playback";
 
 export const fakeController = {
   play() {
@@ -10,42 +7,14 @@ export const fakeController = {
   pause() {
     console.log("fake pause");
   },
+  subscribe(val: { next: (newVal: StopwatchProps) => void }) {
+    console.log("PSYCH");
+    return () => {};
+  },
 } as const;
 
 export type PlayPauseController = typeof fakeController;
 
-export const bgControllerAccumulator = bgConfigSubject.pipe(
-  map<SoundConfig, PlayPauseController>((bgConfig) => {
-    return convertConfigToController(bgConfig);
-  }),
-  scan<PlayPauseController, PlayPauseController[]>(
-    (acc, bgController): PlayPauseController[] => {
-      acc.push(bgController);
-      return acc;
-    },
-    []
-  ),
-  share()
-);
-
 export type ObserverLike<T, K = void> = {
   next: (value: T) => K;
 };
-
-function makeSoundPlayable(sound: Sound) {
-  return {
-    play() {
-      sound.play();
-    },
-    pause() {
-      sound.pause();
-    },
-  };
-}
-
-function convertConfigToController(config: SoundConfig): PlayPauseController {
-  const sound = soundManager.get(config.id);
-  return makeSoundPlayable(sound);
-}
-
-export function subscribeToPPControllerStream() {}

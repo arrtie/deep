@@ -1,13 +1,14 @@
 import { map, scan } from "rxjs";
 import { ObserverLike } from ".";
 import { userSelectionStream } from "../ConfigurationOptions/UserSelection";
-import { Playback } from "../Playback/Playback";
+import { Playback, StopwatchProps } from "../Playback/Playback";
 /**
  * @method play triggers emit from bgControllers and intrvControllers
  */
 export type ActionBarController = {
   play: () => void; // trigger the start of playing all the sounds
   pause: () => void;
+  subscribe: (obs: { next: (val: StopwatchProps) => void }) => () => void;
 };
 
 interface PreviousCurrent {

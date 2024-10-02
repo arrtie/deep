@@ -1,3 +1,16 @@
+import {
+  interval,
+  map,
+  merge,
+  NEVER,
+  Observable,
+  scan,
+  share,
+  Subject,
+  Subscription,
+  switchMap,
+  tap,
+} from "rxjs";
 import { SoundConfig } from "../ConfigurationOptions";
 import { Sound } from "../ConfigurationOptions/streams";
 import { UserSelectionConfigs } from "../ConfigurationOptions/UserSelection";
@@ -13,6 +26,53 @@ interface PlaybackProperties extends SoundConfig {
   offset: number;
   timeoutId: number | undefined;
   sound: Sound;
+}
+
+const stopwatchProps = {
+  paused: true,
+  current: 0,
+  speed: 1000,
+};
+type State = typeof stopwatchProps;
+export type StopwatchProps = State;
+
+function makeStopwatch(subject: Observable<Partial<State>>) {
+  return subject.pipe(
+    scan(
+      (acc: State, val: Partial<State>) => ({ ...acc, ...val }),
+      stopwatchProps
+    ),
+    tap((val: State) => console.log("new vals: ", val)),
+    switchMap((currentState: State) => {
+      return currentState.paused
+        ? NEVER
+        : interval(currentState.speed).pipe(
+            map((val: number) => {
+              return {
+                ...currentState,
+                current: currentState.current + val * currentState.speed,
+              };
+            })
+          );
+    }),
+    share()
+  );
+}
+
+type StopwatchSubject = Subject<Partial<State>>;
+
+function makeStopwatchController() {
+  const playSubject: StopwatchSubject = new Subject();
+  const pauseSubject: StopwatchSubject = new Subject();
+  const resetSubject: StopwatchSubject = new Subject();
+  const merged = merge(playSubject, pauseSubject, resetSubject);
+  const stopwatch = makeStopwatch(merged);
+  return {
+    play: playSubject,
+    pause: pauseSubject,
+    reset: resetSubject,
+    stopwatch,
+  };
 }
 
 function newTimeout(intervals: Map<number, PlaybackProperties>, uuid: number) {
@@ -43,6 +103,15 @@ export class Playback {
   intervalSounds: Sound[] = [];
   intervalMap: Map<number, PlaybackProperties> = new Map();
   intervalsArray: PlaybackProperties[] = [];
+  subscriptions: Subscription[] = [];
+  //   timeSubject = new BehaviorSubject(stopwatchProps);
+  //   timeStream = makeStopwatch(this.timeSubject);
+  stopwatchStream: Observable<State>;
+  stopwatchController: {
+    play: StopwatchSubject;
+    pause: StopwatchSubject;
+    reset: StopwatchSubject;
+  };
 
   constructor(userSelections: UserSelectionConfigs) {
     this.bgSounds = userSelections.bgs.map((config) => {
@@ -57,6 +126,9 @@ export class Playback {
         sound: soundManager.get(config.id),
       });
     });
+    const { play, pause, reset, stopwatch } = makeStopwatchController();
+    this.stopwatchController = { play, pause, reset };
+    this.stopwatchStream = stopwatch;
   }
   get intervals() {
     return Array.from(this.intervalMap.entries());
@@ -91,6 +163,7 @@ export class Playback {
     this.playStart = performance.now();
     this.bgSounds.forEach((sound) => sound.play());
     this.setUpIntervals();
+    this.stopwatchController.play.next({ paused: false });
   }
 
   pause() {
@@ -98,6 +171,7 @@ export class Playback {
     this.playEnd = performance.now();
     this.bgSounds.forEach((sound) => sound.pause());
     this.pauseIntevals();
+    this.stopwatchController.pause.next({ paused: true });
   }
 
   destroy() {
@@ -105,5 +179,22 @@ export class Playback {
       const { timeoutId } = playbackProps;
       clearTimeout(timeoutId);
     });
+    this.subscriptions.forEach((script) => {
+      script.unsubscribe();
+    });
+  }
+
+  subscribe(observer: { next: (val: State) => void }) {
+    function makeUnSub(this: Playback): () => void {
+      const sub = this.stopwatchStream.subscribe(observer);
+      this.subscriptions.push(sub);
+      return () => {
+        const subIndex = this.subscriptions.findIndex((_sub) => _sub === sub);
+        if (subIndex >= 0) {
+          this.subscriptions.splice(subIndex, 1);
+        }
+      };
+    }
+    return makeUnSub.call(this);
   }
 }

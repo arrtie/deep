@@ -1,9 +1,10 @@
 import { useEffect, useState } from "preact/hooks";
-import { PlayPauseController, fakeController } from ".";
+import { map } from "rxjs";
+import { fakeController } from ".";
 import { ActionBarController, actionBarControllerStream } from "./ActionBar";
 
 // returns a controller on each composerStream emission ( your audio elements are loaded!)
-export default function useController({
+export default function useActionBarController({
   next: nextCallback,
 }:
   | {
@@ -11,18 +12,24 @@ export default function useController({
     }
   | undefined = {}) {
   const [controller, setController] =
-    useState<PlayPauseController>(fakeController);
+    useState<ActionBarController>(fakeController);
 
   useEffect(() => {
-    const sub = actionBarControllerStream.subscribe({
-      next: (actionBarController: ActionBarController) => {
-        console.log("NEXTED!", actionBarController);
-        setController(actionBarController);
-        if (nextCallback != null) {
-          nextCallback();
-        }
-      },
-    });
+    const sub = actionBarControllerStream
+      .pipe(
+        map((project) => {
+          return project;
+        })
+      )
+      .subscribe({
+        next: (actionBarController: ActionBarController) => {
+          console.log("NEXTED!", actionBarController);
+          setController(actionBarController);
+          if (nextCallback != null) {
+            nextCallback();
+          }
+        },
+      });
     return () => {
       sub.unsubscribe();
     };
