@@ -1,24 +1,13 @@
-import { map, scan } from "rxjs";
-import { ObserverLike } from ".";
+import { map, scan, share } from "rxjs";
+import { Playback } from ".";
 import { userSelectionStream } from "../ConfigurationOptions/UserSelection";
-import { Playback, StopwatchProps } from "../Playback/Playback";
-/**
- * @method play triggers emit from bgControllers and intrvControllers
- */
-export type ActionBarController = {
-  play: () => void; // trigger the start of playing all the sounds
-  pause: () => void;
-  subscribe: (obs: { next: (val: StopwatchProps) => void }) => () => void;
-};
 
 interface PreviousCurrent {
   prev: Playback | null;
   current: Playback | null;
 }
-/**
- * emits an ActionBarController
- */
-export const actionBarControllerStream = userSelectionStream.pipe(
+
+export const playbackStream = userSelectionStream.pipe(
   map((userSelectionConfigs) => {
     console.log("userSelectionConfigs: ", userSelectionConfigs);
     return new Playback(userSelectionConfigs);
@@ -37,11 +26,6 @@ export const actionBarControllerStream = userSelectionStream.pipe(
       throw new Error("missing current?");
     }
     return prevAndCurr.current;
-  })
+  }),
+  share()
 );
-
-export function subscribeToActionBarControllerStream(
-  observer: ObserverLike<ActionBarController>
-) {
-  return actionBarControllerStream.subscribe(observer);
-}

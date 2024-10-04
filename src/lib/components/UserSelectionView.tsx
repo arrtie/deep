@@ -74,7 +74,7 @@ const OptionalSelection = emotionStyled.p(
   (props) => ({ "&:after": { content: `"x${props.count ?? 1}"` } })
 );
 
-export default function PlaybackViewer() {
+export default function UserSelectionView() {
   const userPlaybackOptions = usePlaybackOptions();
   const [bg, opt] = useMemo(() => {
     let _bg: SoundConfig[] = [];
@@ -85,7 +85,7 @@ export default function PlaybackViewer() {
     }
     return [_bg, _opt];
   }, [userPlaybackOptions]);
-  console.log("PlaybackViewer: opt", opt, "bg", bg);
+  console.log("UserSelectionView: opt", opt, "bg", bg);
 
   return (
     <>

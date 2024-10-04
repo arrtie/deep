@@ -1,1 +1,0 @@
-export interface Sound extends Howl
