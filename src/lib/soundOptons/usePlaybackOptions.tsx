@@ -6,13 +6,11 @@ import {
 } from "../ConfigurationOptions/UserSelection";
 
 export default function usePlaybackOptions(): UserSelectionConfigs | null {
-  // subscribe to stream
-  // set playbackOptionState on event
   const [options, setOptions] = useState<UserSelectionConfigs | null>(null);
   useEffect(() => console.log("options: ", options), [options]);
   useEffect(() => {
-    const observer: Partial<Observer<UserSelectionConfigs>> = {
-      next(configProps: UserSelectionConfigs) {
+    const observer: Partial<Observer<UserSelectionConfigs | null>> = {
+      next(configProps: UserSelectionConfigs | null) {
         setOptions(configProps);
       },
     };

@@ -10,13 +10,13 @@ export interface UserSelectionConfigs {
 export class UserSelection {
   static bgs: SoundConfig[] = [];
   static intervals: SoundConfig[] = [];
-  static subject = new BehaviorSubject<UserSelectionConfigs>({
-    bgs: [],
-    intervals: [],
-  });
+  static subject = new BehaviorSubject<UserSelectionConfigs | null>(null);
   static stream = UserSelection.subject.pipe(share());
 
   static getConfigs() {
+    if (UserSelection.bgs.length === 0 && UserSelection.bgs.length === 0) {
+      return null;
+    }
     return { bgs: UserSelection.bgs, intervals: UserSelection.intervals };
   }
 

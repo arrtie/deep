@@ -2,6 +2,7 @@ import ActionBar from "../components/ActionBar";
 import AudioPlayer from "../components/Player/Player";
 import TimeView from "../components/Time";
 import UserSelectionView from "../components/UserSelectionView";
+import { clearUserSelections } from "../ConfigurationOptions";
 import usePlaybackStream from "../Playback/usePlaybackStream";
 import { Theme } from "../theme";
 
@@ -25,7 +26,7 @@ export default function Layout() {
       <AudioPlayer />
       <UserSelectionView />
       <TimeView playback={playback} />
-      <ActionBar />
+      <ActionBar playback={playback} reset={clearUserSelections} />
     </main>
   );
 }

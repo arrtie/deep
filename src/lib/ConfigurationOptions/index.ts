@@ -17,6 +17,9 @@ export type LoopOnly = SoundOptions<LoopOptions>;
 export type IntervalOnly = SoundOptions<IntervalOptions>;
 
 export function submitUserConfigOption(config: SoundConfig, kind: OptionKind) {
-  console.log("config option: ", kind);
   UserSelection.addConfig(config, kind);
+}
+
+export function clearUserSelections() {
+  UserSelection.clearConfigs();
 }

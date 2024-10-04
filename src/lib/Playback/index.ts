@@ -92,10 +92,12 @@ export class Playback {
   }
 
   destroy() {
+    this.pause();
     this.intervals.forEach(([, playbackProps]) => {
       const { timeoutId } = playbackProps;
       clearTimeout(timeoutId);
     });
+    this.intervalMap.clear();
     this.stopwatchController.destroy();
   }
 }

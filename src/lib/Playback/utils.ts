@@ -1,11 +1,11 @@
 import {
+  BehaviorSubject,
   interval,
   map,
   NEVER,
   Observable,
   scan,
   share,
-  Subject,
   switchMap,
   tap,
 } from "rxjs";
@@ -36,7 +36,6 @@ export interface StopwatchState {
   speed: number;
 }
 
-// export type StopwatchState = typeof stopwatchProps;
 export type StopwatchProps = StopwatchState;
 type StopwatchUpdater = (acc: StopwatchState) => StopwatchState;
 
@@ -52,8 +51,6 @@ function makeStopwatch(subject: Observable<StopwatchUpdater>) {
         ? NEVER
         : interval(currentState.speed).pipe(
             map((val: number) => {
-              const current = currentState.current + val * currentState.speed;
-
               return {
                 ...currentState,
                 current: currentState.current + val * currentState.speed,
@@ -65,10 +62,16 @@ function makeStopwatch(subject: Observable<StopwatchUpdater>) {
   );
 }
 
-export type StopwatchSubject = Subject<Partial<StopwatchState>>;
+export type StopwatchSubject = BehaviorSubject<Partial<StopwatchState>>;
 
 export function makeStopwatchController() {
-  const updaterSubject = new Subject<StopwatchUpdater>();
+  const updaterSubject = new BehaviorSubject<StopwatchUpdater>(() => {
+    return {
+      paused: true,
+      current: 0,
+      speed: 1000,
+    };
+  });
   const stopwatchStream = makeStopwatch(updaterSubject);
 
   function destroy() {

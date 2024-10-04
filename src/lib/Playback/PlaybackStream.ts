@@ -9,11 +9,13 @@ interface PreviousCurrent {
 
 export const playbackStream = userSelectionStream.pipe(
   map((userSelectionConfigs) => {
-    console.log("userSelectionConfigs: ", userSelectionConfigs);
+    if (userSelectionConfigs == null) {
+      return null;
+    }
     return new Playback(userSelectionConfigs);
   }),
   scan(
-    (acc: PreviousCurrent, newVal: Playback) => {
+    (acc: PreviousCurrent, newVal: Playback | null) => {
       if (acc.prev != null) {
         acc.prev.destroy();
       }
@@ -22,9 +24,6 @@ export const playbackStream = userSelectionStream.pipe(
     { prev: null, current: null }
   ),
   map((prevAndCurr: PreviousCurrent) => {
-    if (prevAndCurr.current == null) {
-      throw new Error("missing current?");
-    }
     return prevAndCurr.current;
   }),
   share()
