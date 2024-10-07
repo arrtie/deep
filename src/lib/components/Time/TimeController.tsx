@@ -1,17 +1,47 @@
-import { Observable } from "rxjs";
-import useSubscribe from "../../../utils/useSubscribe";
-import { StopwatchState } from "../../Playback/utils";
+import { useEffect, useState } from "preact/hooks";
+import { interval, map, Observable, of, startWith, switchMap } from "rxjs";
+import { StopwatchState } from "../../Stopwatch";
 
 export default function TimeController({
   stopwatchStream,
 }: {
-  stopwatchStream: Observable<StopwatchState>;
+  stopwatchStream: Observable<StopwatchState | null>;
 }) {
-  const stopwatchState = useSubscribe(stopwatchStream);
-  if (stopwatchState?.current == null) {
+  const [state, setState] = useState<StopwatchState | null>(null);
+
+  useEffect(() => {
+    const stopwatchStateStream = stopwatchStream.pipe(
+      switchMap((currState) => {
+        if (currState == null) {
+          return of(null);
+        }
+        if (currState.state === "playing") {
+          return interval(100).pipe(
+            startWith(0),
+            map((curr) => {
+              return {
+                ...currState,
+                delta: currState.delta + curr * 100,
+              };
+            })
+          );
+        }
+        return of(currState);
+      })
+    );
+    const stopwatchSub = stopwatchStateStream.subscribe({
+      next: (nextState) => {
+        setState(nextState);
+      },
+    });
+    return () => stopwatchSub.unsubscribe();
+  }, [stopwatchStream]);
+
+  if (state == null) {
     return "No stopwatch state yet";
   }
-  const timeInMs = stopwatchState.current;
 
-  return <div>Time is: {timeInMs}</div>;
+  const timeInMs = state == null ? 0 : state.delta;
+
+  return <div>Time is: {(timeInMs / 1000).toPrecision(3)}</div>;
 }

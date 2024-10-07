@@ -1,14 +1,4 @@
-import {
-  BehaviorSubject,
-  interval,
-  map,
-  NEVER,
-  Observable,
-  scan,
-  share,
-  switchMap,
-  tap,
-} from "rxjs";
+import { Observable } from "rxjs";
 import { Sound } from "../../types";
 import useSubscribe from "../../utils/useSubscribe";
 import { SoundConfig } from "../ConfigurationOptions";
@@ -22,99 +12,6 @@ export interface PlaybackProperties extends SoundConfig {
   offset: number;
   timeoutId: number | undefined;
   sound: Sound;
-}
-
-const stopwatchProps = {
-  paused: true,
-  current: 0,
-  speed: 1000,
-};
-
-export interface StopwatchState {
-  paused: boolean;
-  current: number;
-  speed: number;
-}
-
-export type StopwatchProps = StopwatchState;
-type StopwatchUpdater = (acc: StopwatchState) => StopwatchState;
-
-function makeStopwatch(subject: Observable<StopwatchUpdater>) {
-  return subject.pipe(
-    scan(
-      (acc: StopwatchState, updater: StopwatchUpdater) => updater(acc),
-      stopwatchProps
-    ),
-    tap((val: StopwatchState) => console.log("new vals: ", val)),
-    switchMap((currentState: StopwatchState) => {
-      return currentState.paused
-        ? NEVER
-        : interval(currentState.speed).pipe(
-            map((val: number) => {
-              return {
-                ...currentState,
-                current: currentState.current + val * currentState.speed,
-              };
-            })
-          );
-    }),
-    share()
-  );
-}
-
-export type StopwatchSubject = BehaviorSubject<Partial<StopwatchState>>;
-
-export function makeStopwatchController() {
-  const updaterSubject = new BehaviorSubject<StopwatchUpdater>(() => {
-    return {
-      paused: true,
-      current: 0,
-      speed: 1000,
-    };
-  });
-  const stopwatchStream = makeStopwatch(updaterSubject);
-
-  function destroy() {
-    updaterSubject.complete();
-  }
-
-  function play() {
-    function makePlay(currentState: StopwatchState) {
-      return {
-        ...currentState,
-        playing: true,
-      };
-    }
-    updaterSubject.next(makePlay);
-  }
-
-  function pause() {
-    function makePause(currentState: StopwatchState) {
-      return {
-        ...currentState,
-        playing: false,
-      };
-    }
-    updaterSubject.next(makePause);
-  }
-  function reset() {
-    function makeReset({ speed }: StopwatchState) {
-      return {
-        speed,
-        current: 0,
-        paused: false,
-      };
-    }
-    updaterSubject.next(makeReset);
-  }
-
-  return {
-    play,
-    pause,
-    reset,
-    stopwatchStream,
-    destroy,
-  };
 }
 
 export function newTimeout(

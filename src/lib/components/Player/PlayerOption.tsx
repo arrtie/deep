@@ -31,7 +31,6 @@ function makeSubmitHandler(id: SoundId, kind: OptionKind) {
       delay,
       repetitions,
     };
-    console.log("submitting userConfigOption", kind);
     submitUserConfigOption(soundConfig, kind);
   };
 }

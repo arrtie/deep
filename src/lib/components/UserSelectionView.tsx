@@ -85,7 +85,6 @@ export default function UserSelectionView() {
     }
     return [_bg, _opt];
   }, [userPlaybackOptions]);
-  console.log("UserSelectionView: opt", opt, "bg", bg);
 
   return (
     <>

@@ -4,13 +4,8 @@ import { SoundId } from "../soundOptons";
 import { soundManager } from "../soundOptons/SoundManager";
 
 import { Sound } from "../../types";
-import {
-  PlaybackProperties,
-  StopwatchState,
-  makeStopwatchController,
-  minToMs,
-  newTimeout,
-} from "./utils";
+import { StopwatchState, makeStopwatchController } from "../Stopwatch";
+import { PlaybackProperties, minToMs, newTimeout } from "./utils";
 
 export class Playback {
   playStart: number = 0;
@@ -21,7 +16,7 @@ export class Playback {
   intervalMap: Map<number, PlaybackProperties> = new Map();
   intervalsArray: PlaybackProperties[] = [];
   subscriptions: Subscription[] = [];
-  stopwatchStream: Observable<StopwatchState>;
+  stopwatchStream: Observable<StopwatchState | null>;
   stopwatchController: {
     play: (now: number) => void;
     pause: (now: number) => void;
@@ -76,7 +71,6 @@ export class Playback {
   }
 
   play() {
-    console.log("play");
     this.playStart = performance.now();
     this.bgSounds.forEach((sound) => sound.play());
     this.setUpIntervals();
@@ -84,7 +78,6 @@ export class Playback {
   }
 
   pause() {
-    console.log("pause");
     this.playEnd = performance.now();
     this.bgSounds.forEach((sound) => sound.pause());
     this.pauseIntevals();

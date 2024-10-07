@@ -7,7 +7,6 @@ import {
 
 export default function usePlaybackOptions(): UserSelectionConfigs | null {
   const [options, setOptions] = useState<UserSelectionConfigs | null>(null);
-  useEffect(() => console.log("options: ", options), [options]);
   useEffect(() => {
     const observer: Partial<Observer<UserSelectionConfigs | null>> = {
       next(configProps: UserSelectionConfigs | null) {
