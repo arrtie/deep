@@ -2,7 +2,7 @@ import { css } from "@emotion/react";
 import emotionStyled from "@emotion/styled";
 import { useMemo } from "preact/hooks";
 import { SoundConfig } from "../ConfigurationOptions";
-import { titleMap } from "../soundOptons";
+import { getSoundTitle } from "../soundOptons";
 import usePlaybackOptions from "../soundOptons/usePlaybackOptions";
 
 const selectionStyle = css`
@@ -21,20 +21,6 @@ const backgroundSelectionStyle = css([
   selectionStyle,
   { backgroundColor: "hotpink" },
 ]);
-
-// const OptionalSelection = {
-//   backgroundColor: "blue",
-//   position: "relative",
-//   "&:after": {
-//     content: '"x"',
-//     minWidth: "1em",
-//     height: "1em",
-//     backgroundColor: "red",
-//     position: "absolute",
-//     top: 0,
-//     right: 0,
-//   },
-// };
 
 const row = css({
   display: "flex",
@@ -91,7 +77,7 @@ export default function UserSelectionView() {
       <div css={row}>
         <SelectionHeader>BG:</SelectionHeader>
         {bg.map((option) => (
-          <BackgroundSelection>{titleMap.get(option.id)}</BackgroundSelection>
+          <BackgroundSelection>{getSoundTitle(option.id)}</BackgroundSelection>
         ))}
       </div>
 
@@ -100,7 +86,7 @@ export default function UserSelectionView() {
         {opt.map((option) => (
           <OptionalSelection count={option.repetitions}>
             <span css={{ display: "block", fontWeight: 500 }}>
-              {titleMap.get(option.id)}
+              {getSoundTitle(option.id)}
             </span>
             <span>delay: {option.delay} mins.</span>
           </OptionalSelection>

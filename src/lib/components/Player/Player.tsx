@@ -1,4 +1,4 @@
-import LittleBellPlayerOption from "./Option/LittleBell";
+import IntervalOptions from "./IntervalOptions";
 import RainPlayerOption from "./Option/Rain";
 import WhitenoisePlayerOption from "./Option/Whitenoise";
 
@@ -23,7 +23,7 @@ export default function AudioPlayer() {
       </div>
       <h5>Options</h5>
       <div css={sectionStyles}>
-        <LittleBellPlayerOption />
+        <IntervalOptions />
       </div>
     </>
   );

@@ -1,4 +1,4 @@
-import { BehaviorSubject, share } from "rxjs";
+import { BehaviorSubject, Observable, share, tap } from "rxjs";
 import { SoundConfig } from ".";
 import { OptionKind } from "../components/Player/PlayerOption";
 
@@ -7,37 +7,59 @@ export interface UserSelectionConfigs {
   intervals: SoundConfig[];
 }
 
-export class UserSelection {
-  static bgs: SoundConfig[] = [];
-  static intervals: SoundConfig[] = [];
-  static subject = new BehaviorSubject<UserSelectionConfigs | null>(null);
-  static stream = UserSelection.subject.pipe(share());
+interface UserSelectionI {
+  bgs: SoundConfig[];
+  intervals: SoundConfig[];
+  subject: BehaviorSubject<UserSelectionConfigs | null>;
+  stream: Observable<UserSelectionConfigs | null>;
 
-  static getConfigs() {
-    if (UserSelection.bgs.length === 0 && UserSelection.bgs.length === 0) {
-      return null;
-    }
-    return { bgs: UserSelection.bgs, intervals: UserSelection.intervals };
-  }
+  getConfigs: () => UserSelectionConfigs | null;
 
-  static emitConfigs() {
-    UserSelection.subject.next(UserSelection.getConfigs());
-  }
+  emitConfigs: () => void;
 
-  static addConfig(newConfig: SoundConfig, kind: OptionKind) {
-    if (kind === "background") {
-      UserSelection.bgs.push(newConfig);
-    } else {
-      UserSelection.intervals.push(newConfig);
-    }
-    UserSelection.emitConfigs();
-  }
+  addConfig: (newConfig: SoundConfig, kind: OptionKind) => void;
 
-  static clearConfigs() {
-    UserSelection.bgs = [];
-    UserSelection.intervals = [];
-    UserSelection.emitConfigs();
-  }
+  clearConfigs: () => void;
 }
 
-export const userSelectionStream = UserSelection.stream;
+const userSelectionSubject = new BehaviorSubject<UserSelectionConfigs | null>(
+  null
+);
+
+export const userSelection: UserSelectionI = {
+  bgs: [],
+  intervals: [],
+  subject: userSelectionSubject,
+  stream: userSelectionSubject.pipe(
+    tap((value) => console.log("userselection: ", value)),
+    share()
+  ),
+
+  getConfigs: () => {
+    if (userSelection.bgs.length === 0 && userSelection.bgs.length === 0) {
+      return null;
+    }
+    return { bgs: userSelection.bgs, intervals: userSelection.intervals };
+  },
+
+  emitConfigs: () => {
+    userSelectionSubject.next(userSelection.getConfigs());
+  },
+
+  addConfig: (newConfig: SoundConfig, kind: OptionKind) => {
+    if (kind === "background") {
+      userSelection.bgs.push(newConfig);
+    } else {
+      userSelection.intervals.push(newConfig);
+    }
+    userSelection.emitConfigs();
+  },
+
+  clearConfigs: () => {
+    userSelection.bgs = [];
+    userSelection.intervals = [];
+    userSelection.emitConfigs();
+  },
+};
+
+export const userSelectionStream = userSelection.stream;
