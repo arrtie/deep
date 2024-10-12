@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { interval, map, Observable, of, startWith, switchMap } from "rxjs";
 import { StopwatchState } from "../../Stopwatch";
+import { TimeView } from "./TimeView";
 
 export default function TimeController({
   stopwatchStream,
@@ -38,10 +39,9 @@ export default function TimeController({
   }, [stopwatchStream]);
 
   if (state == null) {
-    return "No stopwatch state yet";
+    return null;
   }
 
   const timeInMs = state == null ? 0 : state.delta;
-
-  return <div>Time is: {(timeInMs / 1000).toPrecision(3)}</div>;
+  return <TimeView timeInMs={timeInMs} />;
 }
