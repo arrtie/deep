@@ -9,7 +9,6 @@ export interface SoundConfig {
 }
 
 export function submitUserConfigOption(config: SoundConfig, kind: OptionKind) {
-  debugger;
   userSelection.addConfig(config, kind);
 }
 
